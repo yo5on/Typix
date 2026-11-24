@@ -17,6 +17,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && vite build"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.13",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
     "@preact/preset-vite": "^2.10.6",
     "eslint": "^10.15.0",
     "globals": "^17.14.0",

@@ -40,7 +40,13 @@ export function TypingText({ target, pos, typed, missed, inactive }: TypingTextP
   }, [pos, target]);
 
   return (
-    <div class={`${s.box} ${inactive ? s.inactive : ''}`} ref={boxRef} aria-hidden="true">
+    <div
+      class={`${s.box} ${inactive ? s.inactive : ''}`}
+      ref={boxRef}
+      aria-hidden="true"
+      data-target={target}
+      data-pos={pos}
+    >
       <div class={s.inner} ref={innerRef}>
         {words.map((w) => (
           <span class={s.word} key={w.start}>

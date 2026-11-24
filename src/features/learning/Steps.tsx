@@ -59,7 +59,7 @@ function ContinueHint({ extra }: { extra?: preact.ComponentChildren }) {
 function IntroStep({ spec, onDone, onExit }: StepProps & { spec: Extract<StepSpec, { kind: 'intro' }> }) {
   useStepKeys({ space: () => onDone(), enter: () => onDone(), escape: onExit });
   return (
-    <div class={s.step}>
+    <div class={s.step} data-step="intro">
       <section class={s.intro} aria-live="polite">
         <h2 class={s.introTitle}>{spec.title}</h2>
         {spec.body.map((p) => (
@@ -100,7 +100,7 @@ function FindStep({ keys, title, onDone, onExit }: StepProps & { keys: string; t
   });
 
   return (
-    <div class={s.step}>
+    <div class={s.step} data-step="find" data-keys={keys.slice(i)}>
       <section class={s.prompt}>
         <h2 class={s.promptTitle}>{title}</h2>
         <div class={s.sequence} aria-hidden="true">
@@ -142,7 +142,7 @@ function DemoStep({ keys, lesson, onDone, onExit }: StepProps & { keys: string }
     ? ` Hold the ${stroke.shiftCode === 'ShiftLeft' ? 'left' : 'right'} Shift with your ${fingerName(stroke.shiftCode === 'ShiftLeft' ? 'L5' : 'R5')} at the same time.`
     : '';
   return (
-    <div class={s.step}>
+    <div class={s.step} data-step="demo">
       <section class={s.prompt} aria-live="polite">
         <p class={s.eyebrow}>
           New key {i + 1} of {keys.length}
@@ -258,7 +258,7 @@ function DrillStep({ spec, lesson, focus, onDone, onExit, onRestart }: StepProps
   const accuracy = chars.length ? chars.filter((e) => e.kind === 'correct').length / chars.length : 1;
 
   return (
-    <div class={s.step}>
+    <div class={s.step} data-step="drill">
       <div class={s.drillBar}>
         <span class={s.eyebrow}>{DRILL_NAMES[spec.style]}</span>
         <span class={`${s.drillStat} num`}>

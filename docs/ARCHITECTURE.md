@@ -144,4 +144,6 @@ Global keys: **Esc** returns to the menu, unless a `<dialog>` is open; dialogs h
 
 `npm test` runs Vitest on `src/**/*.test.ts`. The store suite covers validation, settings sanitising, migrations, persistence (first launch, round trip, corrupt data, full storage) and the export → reset → import round trip, including hostile import files.
 
-CI (`.github/workflows/ci.yml`) runs the type check, lint, format check, tests and build on every push and pull request.
+`npm run test:e2e` runs Playwright (`e2e/`) against the production build on port 5199, in Chromium, Firefox and WebKit: first launch through Units 0–1, a punctuation lesson, the wrong-side Shift reminder, a Stats deep link and both placement outcomes. `playLesson` drives any lesson from the DOM hooks `data-step`, `data-keys`, `data-target` and `data-pos`. Test profiles turn hands and motion off.
+
+CI (`.github/workflows/ci.yml`) runs the type check, lint, format check, tests and build on every push and pull request, and the e2e suite in a separate job.
