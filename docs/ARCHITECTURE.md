@@ -9,10 +9,34 @@ src/
 ├─ main.tsx          entry: fonts, global CSS, render <App/>
 ├─ app/              shell: router, global hotkeys, page transitions, app-wide state
 ├─ core/             pure TypeScript: no DOM, Preact or Phaser (enforced by ESLint)
+│  ├─ layout/        keyboard layouts as data (US QWERTY), character → key + finger lookup
+│  ├─ typing/        the shared typing engine and the one definition of every metric
+│  ├─ stats/         folds finished sessions into progress (per key, letter pair, day)
+│  ├─ textgen/       word filtering and picking, "your keys", custom-text cleanup
 │  └─ store/         schema, validation, migrations, persistence, export/import
+├─ content/          data: word lists (later lessons, fighters, arenas)
 ├─ ui/               design system: tokens, base styles, motion, shared components
-└─ features/         one folder per screen: menu, settings, (learning, practice, fight, stats…)
+│  ├─ typing/        typing-key capture hook and the scrolling typed-text view
+│  └─ keyboard/      on-screen keyboard (heatmap now; hands in Phase 2)
+└─ features/         one folder per screen: menu, settings, practice, (learning, fight, stats…)
 ```
+
+## Typing pipeline
+
+```
+keydown ─► useTypingKeys (ui/typing)        blocks browser actions on typing keys, drops auto-repeat
+        ─► TypingSession.input (core/typing) compares with the target, records a TypingEvent
+        ─► screen renders TypingText         caret, done / fixed / wrong characters
+finish  ─► computeMetrics (core/typing)       WPM, raw WPM, accuracy, consistency
+        ─► recordSession (core/stats)         per-key, per-pair and daily totals into progress
+```
+
+- **Keys are identified by character.** The engine compares `KeyboardEvent.key` with the target; the layout maps each character to its physical key and finger for stats (`Space`, `KeyA`…). Capitals count toward their letter's key.
+- **Error modes** (Settings → Learning → On a typo): _Wait_ keeps the cursor on the character until it is typed correctly, and Backspace does nothing. _Continue_ moves on and allows Backspace.
+- **Time** is `KeyboardEvent.timeStamp` minus time spent paused. A test pauses when the window loses focus, and the key that resumes it is not typed.
+- **Metric definitions** are in `core/typing/metrics.ts` and covered by fixture tests. Gaps over 2 s count as pauses and are left out of rhythm and key-speed numbers.
+- **Stats:** per-key presses, errors and running mean latency, the last 50 results (for mastery), and calm vs pressure splits. The 300 most-typed letter pairs are kept. Daily minutes and WPM are kept forever; only the 300 latest session summaries are kept.
+- **"Your keys"** means the home row plus any letter typed 20+ times at 90%+ recent accuracy. Learning lessons will feed this in Phase 3.
 
 Rules, enforced by `eslint.config.js`:
 

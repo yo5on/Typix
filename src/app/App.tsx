@@ -4,6 +4,7 @@ import { storageNotice } from './state';
 import { MenuScreen } from '../features/menu/MenuScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { ComingSoon } from '../features/placeholder/ComingSoon';
+import { PracticeScreen } from '../features/practice/PracticeScreen';
 import { Icon } from '../ui/components/Icon';
 import s from './App.module.css';
 
@@ -24,13 +25,7 @@ const screens: Record<Route, () => preact.JSX.Element> = {
       text="Arcade combat powered by your typing. Practice difficulty included."
     />
   ),
-  practice: () => (
-    <ComingSoon
-      title="Free Practice"
-      phase={1}
-      text="Timed tests, weak-key drills and your own text, without any pressure."
-    />
-  ),
+  practice: () => <PracticeScreen />,
   stats: () => (
     <ComingSoon title="Stats & Progress" phase={4} text="Key mastery, calm vs pressure speed and records." />
   ),

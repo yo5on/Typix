@@ -48,8 +48,8 @@ export function loadSettings(store: KeyValueStore): Settings {
 export type SaveResult = { ok: true; trimmed: boolean } | { ok: false; error: string };
 
 /**
- * Saves progress. If storage is full, drops the oldest sessions (aggregates are kept) and retries once.
- * shortcut: trimming drops old session summaries outright; roll them into `daily` once stats exist (Phase 1).
+ * Saves progress. If storage is full, drops the oldest sessions and retries once.
+ * Nothing long-term is lost: per-key stats and `daily` totals already include every session.
  */
 export function saveProgress(store: KeyValueStore, progress: Progress): SaveResult {
   try {

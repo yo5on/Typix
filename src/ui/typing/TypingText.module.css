@@ -1,0 +1,92 @@
+.box {
+  --type-size: 32px;
+  --type-line: 1.6;
+  position: relative;
+  height: calc(var(--type-size) * var(--type-line) * 3);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--type-size);
+  line-height: var(--type-line);
+  font-variant-ligatures: none;
+}
+
+:global([data-text-size='S']) .box {
+  --type-size: 24px;
+}
+:global([data-text-size='L']) .box {
+  --type-size: 40px;
+}
+:global([data-text-size='XL']) .box {
+  --type-size: 48px;
+}
+
+.inner {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.word {
+  display: inline-block;
+  white-space: pre;
+}
+
+.word > span {
+  position: relative;
+}
+
+.todo {
+  color: var(--text-1);
+}
+
+.done {
+  color: var(--text-3);
+}
+
+/* Correct now, but a mistake was made here first. */
+.fixed {
+  color: var(--text-3);
+  text-decoration: underline 2px color-mix(in srgb, var(--err) 55%, transparent);
+  text-underline-offset: 6px;
+}
+
+/* Typed wrong and left wrong ("continue" mode). */
+.wrong {
+  color: var(--err);
+  text-decoration: underline wavy 2px var(--err);
+  text-underline-offset: 6px;
+}
+
+/* The caret sits on the next character to type. */
+[data-caret]::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 12%;
+  bottom: 12%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  animation: blink 1s steps(1) infinite;
+}
+
+/* A wrong key was just pressed and the caret is waiting for the right one. */
+.missNow {
+  background: color-mix(in srgb, var(--err) 22%, transparent);
+  border-radius: 3px;
+}
+
+.inactive {
+  opacity: 0.35;
+}
+.inactive [data-caret]::before {
+  display: none;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+:global([data-motion='reduce']) [data-caret]::before {
+  animation: none;
+}

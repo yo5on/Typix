@@ -10,7 +10,7 @@ Typix is a free, browser-based touch-typing trainer in three modes:
 
 All three modes share one typing engine and one progress store. Progress stays in your browser, so there are no accounts and no backend. You can export your progress to a file at any time.
 
-> **Status:** Phase 0 (foundation) is complete. The app shell, design system, settings and save system work. The modes arrive in later phases; see [the plan](docs/PLAN.md).
+> **Status:** Phase 1 is complete: Free Practice (timed and word tests, weak-key drills, custom text, results with a key heatmap) runs on the shared typing engine. Learning and Fight arrive in later phases; see [the plan](docs/PLAN.md).
 
 ## Requirements
 

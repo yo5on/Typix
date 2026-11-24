@@ -1,0 +1,250 @@
+/* ---------- Setup ---------- */
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-24);
+  max-width: 720px;
+  margin: var(--sp-32) auto 0;
+  width: 100%;
+}
+
+.setupRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  row-gap: var(--sp-8);
+}
+
+.setupRow .setupHint {
+  grid-column: 2;
+}
+
+.setupLabel {
+  font-size: var(--fs-14);
+  color: var(--text-2);
+}
+
+.setupHint {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.custom {
+  display: grid;
+  gap: var(--sp-8);
+}
+
+.textarea {
+  min-height: 160px;
+  padding: var(--sp-12);
+  resize: vertical;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+  line-height: 1.6;
+}
+.textarea:focus-visible {
+  border-color: var(--accent);
+}
+
+.setupActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding-top: var(--sp-16);
+  border-top: 1px solid var(--line);
+}
+
+.error {
+  min-height: 1.5em;
+  font-size: var(--fs-14);
+  color: var(--warn);
+}
+
+/* ---------- Test ---------- */
+.test {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: var(--sp-48);
+}
+
+.testBar {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-24);
+  margin-bottom: var(--sp-24);
+}
+
+.counter {
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  color: var(--accent);
+  min-width: 4ch;
+}
+
+.note {
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+
+.textWrap {
+  position: relative;
+}
+
+.paused {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-16);
+  color: var(--text-1);
+}
+
+.paused > span {
+  padding: var(--sp-12) var(--sp-24);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-1);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
+}
+
+.warning {
+  margin-top: var(--sp-24);
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+  font-size: var(--fs-14);
+  color: var(--text-1);
+}
+
+.testFooter {
+  display: flex;
+  gap: var(--sp-24);
+  margin-top: auto;
+  padding-top: var(--sp-48);
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+/* ---------- Results ---------- */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-24);
+}
+
+.headline {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-48);
+}
+
+.big {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+}
+
+.bigValue {
+  font-family: var(--font-display);
+  font-size: var(--fs-64);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.bigUnit {
+  font-size: var(--fs-16);
+  color: var(--text-2);
+}
+
+.stats {
+  display: flex;
+  gap: var(--sp-32);
+  margin: 0;
+}
+
+.stat dt {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.stat dd {
+  margin: 0;
+  font-size: var(--fs-20);
+}
+
+.resultMeta {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.panel {
+  padding: var(--sp-16) var(--sp-24) var(--sp-24);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--bg-1);
+}
+
+.panelTitle {
+  margin-bottom: var(--sp-16);
+  font-size: var(--fs-14);
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-24);
+}
+
+.keyboardWrap {
+  overflow-x: auto;
+}
+
+.workOn {
+  display: grid;
+  gap: var(--sp-8);
+  margin: 0;
+}
+
+.workOn dt {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.workOn dd {
+  margin: 0 0 var(--sp-12);
+}
+
+.keycaps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-12);
+  font-size: var(--fs-12);
+  color: var(--text-2);
+}
+
+.keycaps kbd {
+  font-size: var(--fs-14);
+  color: var(--text-1);
+}
+
+.muted {
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+
+.actions {
+  display: flex;
+  gap: var(--sp-8);
+}
