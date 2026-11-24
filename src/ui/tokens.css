@@ -1,0 +1,80 @@
+/* Design tokens — the single source for colour, type, spacing and motion. See docs/PLAN.md §1. */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg-0: #0b0d10;
+  --bg-1: #13161b;
+  --bg-2: #1b1f26;
+  --bg-3: #232832;
+  --line: #262b33;
+  --line-strong: #353b46;
+
+  /* Text */
+  --text-1: #e8eaed;
+  --text-2: #a3a9b3;
+  --text-3: #6b727d;
+
+  /* Mode accents (a screen sets --accent to one of these) */
+  --accent-calm: #5cc8b8;
+  --accent-calm-soft: rgb(92 200 184 / 14%);
+  --accent-fight: #ff8a3d;
+  --accent-fight-soft: rgb(255 138 61 / 14%);
+  --accent: var(--accent-calm);
+  --accent-soft: var(--accent-calm-soft);
+  --on-accent: #06110f;
+
+  --ok: #7cc495;
+  --err: #e5776f;
+  --warn: #e3b860;
+
+  /* Finger palette (provisional; to be validated for colour-blindness in Phase 2) */
+  --finger-l5: #c792ea;
+  --finger-l4: #82aaff;
+  --finger-l3: #5cc8b8;
+  --finger-l2: #9ccc65;
+  --finger-r2: #ffcb6b;
+  --finger-r3: #f78c6c;
+  --finger-r4: #ff7eb6;
+  --finger-r5: #b0a4ff;
+  --finger-thumb: #8a93a0;
+
+  /* Typography */
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --font-display: 'Space Grotesk Variable', var(--font-ui);
+
+  --fs-12: 0.75rem;
+  --fs-14: 0.875rem;
+  --fs-16: 1rem;
+  --fs-20: 1.25rem;
+  --fs-28: 1.75rem;
+  --fs-40: 2.5rem;
+  --fs-64: 4rem;
+
+  /* Spacing */
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-48: 48px;
+  --sp-64: 64px;
+
+  --radius-control: 6px;
+  --radius-card: 10px;
+
+  /* Motion */
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --focus-ring: 0 0 0 2px var(--bg-0), 0 0 0 4px var(--accent);
+}
+
+[data-mode='fight'] {
+  --accent: var(--accent-fight);
+  --accent-soft: var(--accent-fight-soft);
+  --on-accent: #1a0c02;
+}

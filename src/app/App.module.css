@@ -1,0 +1,32 @@
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-8) var(--sp-24);
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg-1));
+  border-bottom: 1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+  color: var(--warn);
+  font-size: var(--fs-14);
+}
+
+.notice span {
+  flex: 1;
+  color: var(--text-1);
+}
+
+.dismiss {
+  border: none;
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+.dismiss:hover {
+  color: var(--text-1);
+}

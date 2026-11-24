@@ -1,0 +1,29 @@
+/* Page transition: 200 ms fade with an 8 px rise. data-motion="reduce" on <html> turns it into a plain fade. */
+.screen-enter {
+  animation: screen-in var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+[data-motion='reduce'] .screen-enter {
+  animation-name: fade-in;
+  animation-duration: var(--dur-fast);
+}
+
+[data-motion='reduce'] *,
+[data-motion='reduce'] *::before,
+[data-motion='reduce'] *::after {
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
