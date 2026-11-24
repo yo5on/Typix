@@ -22,8 +22,8 @@ import { useTypingKeys } from '../../ui/typing/useTypingKeys';
 import s from './FightLab.module.css';
 
 /**
- * Development-only test bench for the fight system: a full typing fight against the AI, plus playback and
- * manual controls for debugging. Not reachable in production builds. Typing here never writes progress or stats.
+ * The Fight screen: a typing fight against the AI. With `dev`, it is the Fight Lab test bench, adding playback,
+ * manual controls and debug views. Typing here never writes progress or stats.
  */
 const SPEEDS = [0.1, 0.25, 0.5, 1, 2] as const;
 const TICK = 1 / TICK_HZ;
@@ -33,6 +33,8 @@ const START_GAP = 2.6;
 const CALLOUT_TICKS = 50;
 
 type Pace = 'realtime' | 'relaxed';
+/** 'practice' is a sparring dummy that never attacks, so the fight cannot be lost. */
+type Opponent = Difficulty | 'practice';
 
 interface Hud {
   hp: [number, number];
@@ -52,13 +54,17 @@ interface Match {
   callout: { text: string; until: number } | null;
 }
 
-function newMatch(aiOn: boolean, level: Difficulty, pace: Pace): Match {
+function makeAi(aiOn: boolean, level: Opponent, pace: Pace, seed: number): FightAi | null {
+  return aiOn && level !== 'practice' ? new FightAi(1, level, seed ^ 0x5f3759df, pace === 'relaxed') : null;
+}
+
+function newMatch(aiOn: boolean, level: Opponent, pace: Pace): Match {
   const seed = Date.now() >>> 0;
   return {
     sim: createFight({ gap: START_GAP }),
     renderer: new FightRenderer(),
     player: new TypingFighter(0, wordPickers(enCommonWords, seededRng(seed))),
-    ai: aiOn ? new FightAi(1, level, seed ^ 0x5f3759df, pace === 'relaxed') : null,
+    ai: makeAi(aiOn, level, pace, seed),
     maxCombo: 0,
     callout: { text: 'Fight!', until: 60 },
   };
@@ -67,13 +73,13 @@ function newMatch(aiOn: boolean, level: Difficulty, pace: Pace): Match {
 /** Blur radio inputs after a click so typing keys reach the fight again. */
 const release = () => (document.activeElement as HTMLElement | null)?.blur();
 
-export function FightLab() {
+export function FightLab({ dev = false }: { dev?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rematchRef = useRef<HTMLButtonElement>(null);
   const queue = useRef<FightInput[]>([]);
 
   const [aiOn, setAiOn] = useState(true);
-  const [level, setLevel] = useState<Difficulty>('normal');
+  const [level, setLevel] = useState<Opponent>('normal');
   const [pace, setPace] = useState<Pace>('realtime');
   const match = useRef<Match>(newMatch(aiOn, level, pace));
 
@@ -93,10 +99,15 @@ export function FightLab() {
   const live = useRef({ speed, paused, skinId, skeleton, hitboxes, typing, steps: 0 });
   live.current = { ...live.current, speed, paused, skinId, skeleton, hitboxes, typing };
 
-  // Changing the opponent settings applies straight away, mid-fight included.
+  // The lab swaps the opponent mid-fight. The real Fight restarts, so an attack already under way can't land in Practice.
+  const firstRun = useRef(true);
   useEffect(() => {
-    const m = match.current;
-    m.ai = aiOn ? new FightAi(1, level, (Date.now() >>> 0) ^ 0x5f3759df, pace === 'relaxed') : null;
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    if (dev) match.current.ai = makeAi(aiOn, level, pace, Date.now() >>> 0);
+    else rematch();
   }, [aiOn, level, pace]);
 
   useEffect(() => {
@@ -206,15 +217,22 @@ export function FightLab() {
   const a = player.attack;
 
   return (
-    <Screen title="Fight Lab" onBack={() => navigate('menu')} aside={<span class={s.dev}>DEV ONLY</span>}>
+    <Screen
+      title={dev ? 'Fight Lab' : 'Fight'}
+      onBack={() => navigate('menu')}
+      aside={dev ? <span class={s.dev}>DEV ONLY</span> : undefined}
+    >
       <div class={s.layout}>
         <div class={s.stage}>
           <div class={s.hud}>
             <HpBar label="You" hp={hud.hp[0]} combo={hud.combo[0]} />
-            <span class={`${s.fps} num`}>
-              {fps} fps · {frameMs} ms
-            </span>
-            <HpBar label={aiOn ? `AI · ${level}` : 'P2'} hp={hud.hp[1]} combo={hud.combo[1]} right />
+            <span class={`${s.fps} num`}>{dev && `${fps} fps · ${frameMs} ms`}</span>
+            <HpBar
+              label={!aiOn ? 'P2' : level === 'practice' ? 'Sparring dummy' : `AI · ${level}`}
+              hp={hud.hp[1]}
+              combo={hud.combo[1]}
+              right
+            />
           </div>
           <div class={s.canvasWrap}>
             <canvas ref={canvasRef} class={s.canvas} />
@@ -279,10 +297,10 @@ export function FightLab() {
           </div>
         </div>
 
-        <aside class={s.panel} aria-label="Developer controls">
+        <aside class={s.panel} aria-label={dev ? 'Developer controls' : 'Match settings'}>
           <section>
             <h2>Match</h2>
-            <Switch id="lab-ai" label="AI opponent (P2)" checked={aiOn} onChange={setAiOn} />
+            {dev && <Switch id="lab-ai" label="AI opponent (P2)" checked={aiOn} onChange={setAiOn} />}
             <span class={s.label} id="lab-level-label">
               Difficulty
             </span>
@@ -290,6 +308,7 @@ export function FightLab() {
               id="lab-level"
               value={level}
               options={[
+                { value: 'practice', label: 'Practice' },
                 { value: 'easy', label: 'Easy' },
                 { value: 'normal', label: 'Normal' },
                 { value: 'hard', label: 'Hard' },
@@ -314,88 +333,100 @@ export function FightLab() {
                 release();
               }}
             />
-            <p class={s.hint}>Relaxed: the AI charges more slowly and rests longer between attacks.</p>
+            <p class={s.hint}>
+              Practice: a sparring dummy that never hits back. Relaxed: the AI charges more slowly and rests
+              longer between attacks.
+            </p>
             <Button variant="ghost" onClick={rematch}>
               Restart fight
             </Button>
           </section>
 
-          <section>
-            <h2>Playback</h2>
-            <div class={s.row}>
-              <Button
-                onClick={() => {
-                  setPaused(!paused);
-                  release();
-                }}
-              >
-                {paused ? 'Play' : 'Pause'}
-              </Button>
-              <Button disabled={!paused} onClick={() => live.current.steps++}>
-                Step frame
-              </Button>
-            </div>
-            <span class={s.label} id="lab-speed-label">
-              Animation speed
-            </span>
-            <Segmented
-              id="lab-speed"
-              value={speed}
-              options={SPEEDS.map((v) => ({ value: v, label: `${v}×` }))}
-              onChange={(v) => {
-                setSpeed(v);
-                release();
-              }}
-            />
-            <p class={`${s.hint} num`}>Tick {hud.tick}</p>
-          </section>
+          {dev && (
+            <>
+              <section>
+                <h2>Playback</h2>
+                <div class={s.row}>
+                  <Button
+                    onClick={() => {
+                      setPaused(!paused);
+                      release();
+                    }}
+                  >
+                    {paused ? 'Play' : 'Pause'}
+                  </Button>
+                  <Button disabled={!paused} onClick={() => live.current.steps++}>
+                    Step frame
+                  </Button>
+                </div>
+                <span class={s.label} id="lab-speed-label">
+                  Animation speed
+                </span>
+                <Segmented
+                  id="lab-speed"
+                  value={speed}
+                  options={SPEEDS.map((v) => ({ value: v, label: `${v}×` }))}
+                  onChange={(v) => {
+                    setSpeed(v);
+                    release();
+                  }}
+                />
+                <p class={`${s.hint} num`}>Tick {hud.tick}</p>
+              </section>
 
-          <section>
-            <h2>Manual controls</h2>
-            <span class={s.label} id="lab-attacker-label">
-              Fighter
-            </span>
-            <Segmented
-              id="lab-attacker"
-              value={attacker}
-              options={[
-                { value: 0, label: 'P1' },
-                { value: 1, label: 'P2' },
-              ]}
-              onChange={(v) => {
-                setAttacker(v as FighterId);
-                release();
-              }}
-            />
-            <div class={s.moves}>
-              {MOVE_IDS.map((id: MoveId) => (
-                <Button key={id} onClick={() => manual({ fighter: attacker, kind: 'attack', move: id })}>
-                  {MOVES[id].name}
-                </Button>
-              ))}
-              <Button onClick={() => manual({ fighter: attacker, kind: 'block' })}>Block</Button>
-              <Button onClick={() => manual({ fighter: attacker, kind: 'dodge' })}>Dodge</Button>
-            </div>
-          </section>
+              <section>
+                <h2>Manual controls</h2>
+                <span class={s.label} id="lab-attacker-label">
+                  Fighter
+                </span>
+                <Segmented
+                  id="lab-attacker"
+                  value={attacker}
+                  options={[
+                    { value: 0, label: 'P1' },
+                    { value: 1, label: 'P2' },
+                  ]}
+                  onChange={(v) => {
+                    setAttacker(v as FighterId);
+                    release();
+                  }}
+                />
+                <div class={s.moves}>
+                  {MOVE_IDS.map((id: MoveId) => (
+                    <Button key={id} onClick={() => manual({ fighter: attacker, kind: 'attack', move: id })}>
+                      {MOVES[id].name}
+                    </Button>
+                  ))}
+                  <Button onClick={() => manual({ fighter: attacker, kind: 'block' })}>Block</Button>
+                  <Button onClick={() => manual({ fighter: attacker, kind: 'dodge' })}>Dodge</Button>
+                </div>
+              </section>
 
-          <section>
-            <h2>View</h2>
-            <span class={s.label} id="lab-skin-label">
-              Skin
-            </span>
-            <Segmented
-              id="lab-skin"
-              value={skinId}
-              options={SKINS.map((k) => ({ value: k.id, label: k.name }))}
-              onChange={(v) => {
-                setSkinId(v);
-                release();
-              }}
-            />
-            <Switch id="lab-typing" label="Typing combat (P1)" checked={typing} onChange={setTyping} />
-            <Switch id="lab-skeleton" label="Skeleton and joints" checked={skeleton} onChange={setSkeleton} />
-            <Switch id="lab-hitboxes" label="Hitboxes" checked={hitboxes} onChange={setHitboxes} />
-          </section>
+              <section>
+                <h2>View</h2>
+                <span class={s.label} id="lab-skin-label">
+                  Skin
+                </span>
+                <Segmented
+                  id="lab-skin"
+                  value={skinId}
+                  options={SKINS.map((k) => ({ value: k.id, label: k.name }))}
+                  onChange={(v) => {
+                    setSkinId(v);
+                    release();
+                  }}
+                />
+                <Switch id="lab-typing" label="Typing combat (P1)" checked={typing} onChange={setTyping} />
+                <Switch
+                  id="lab-skeleton"
+                  label="Skeleton and joints"
+                  checked={skeleton}
+                  onChange={setSkeleton}
+                />
+                <Switch id="lab-hitboxes" label="Hitboxes" checked={hitboxes} onChange={setHitboxes} />
+              </section>
+            </>
+          )}
         </aside>
       </div>
     </Screen>

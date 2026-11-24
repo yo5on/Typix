@@ -3,7 +3,6 @@ import { navigate, route, type Route } from './router';
 import { storageNotice } from './state';
 import { MenuScreen } from '../features/menu/MenuScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
-import { ComingSoon } from '../features/placeholder/ComingSoon';
 import { PracticeScreen } from '../features/practice/PracticeScreen';
 import { LearningScreen } from '../features/learning/LearningScreen';
 import { StatsScreen } from '../features/stats/StatsScreen';
@@ -14,15 +13,9 @@ const screens: Record<Route, () => preact.JSX.Element> = {
   menu: () => <MenuScreen />,
   settings: () => <SettingsScreen />,
   learn: () => <LearningScreen />,
-  fight: () => (
-    <ComingSoon
-      title="Fight"
-      phase={5}
-      text="Arcade combat powered by your typing. Practice difficulty included."
-    />
-  ),
+  fight: () => <FightLoader />,
   practice: () => <PracticeScreen />,
-  'fight-lab': () => (import.meta.env.DEV ? <FightLabLoader /> : <MenuScreen />),
+  'fight-lab': () => (import.meta.env.DEV ? <FightLoader dev /> : <MenuScreen />),
   stats: () => <StatsScreen />,
 };
 
@@ -64,11 +57,11 @@ export function App() {
   );
 }
 
-/** Dev-only: loaded on demand, so production builds don't contain the fight lab at all. */
-function FightLabLoader() {
-  const [Lab, setLab] = useState<(() => preact.JSX.Element) | null>(null);
+/** Loaded on demand, so the menu, Learning and Practice don't ship the fight code. */
+function FightLoader({ dev = false }: { dev?: boolean }) {
+  const [Lab, setLab] = useState<((p: { dev?: boolean }) => preact.JSX.Element) | null>(null);
   useEffect(() => {
     void import('../features/fight-lab/FightLab').then((m) => setLab(() => m.FightLab));
   }, []);
-  return Lab ? <Lab /> : null;
+  return Lab ? <Lab dev={dev} /> : null;
 }
