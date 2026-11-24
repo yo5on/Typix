@@ -3,6 +3,7 @@ import { navigate } from '../../app/router';
 import { settings } from '../../app/state';
 import { enCommonWords } from '../../content/words/en-common';
 import { FightAi, type Difficulty } from '../../core/fight/ai';
+import { enemyHp, HEAL, NEXT_ENEMY_TICKS, pointsFor, tierFor, weaponFor } from '../../core/fight/gauntlet';
 import { MOVE_IDS, MOVES, type MoveId } from '../../core/fight/moves';
 import {
   createFight,
@@ -38,11 +39,17 @@ type Opponent = Difficulty | 'practice';
 
 interface Hud {
   hp: [number, number];
+  enemyMax: number;
   combo: [number, number];
+  /** The run is over only when the player goes down; a beaten enemy is replaced. */
+  over: boolean;
   winner: FightState['winner'];
   tick: number;
   counterReady: boolean;
   callout: string | null;
+  score: number;
+  kos: number;
+  tier: number;
 }
 
 interface Match {
@@ -50,24 +57,65 @@ interface Match {
   renderer: FightRenderer;
   player: TypingFighter;
   ai: FightAi | null;
+  opts: { aiOn: boolean; level: Opponent; pace: Pace };
   maxCombo: number;
   callout: { text: string; until: number } | null;
+  score: number;
+  kos: number;
+  tier: number;
+  /** Ticks across every enemy in this run, and when the next enemy walks in (null while one is fighting). */
+  elapsed: number;
+  nextAt: number | null;
 }
 
-function makeAi(aiOn: boolean, level: Opponent, pace: Pace, seed: number): FightAi | null {
-  return aiOn && level !== 'practice' ? new FightAi(1, level, seed ^ 0x5f3759df, pace === 'relaxed') : null;
+/** Enemy body colour per tier, so a stronger enemy looks different. */
+const TIER_COLORS = ['#ff8a3d', '#ff5d5d', '#c86bff', '#4fc3ff', '#ffd23f', '#3ddc84', '#ff3d8a'];
+const enemyColor = (tier: number) => TIER_COLORS[tier % TIER_COLORS.length]!;
+
+function makeAi(o: Match['opts'], seed: number, tier: number): FightAi | null {
+  return o.aiOn && o.level !== 'practice'
+    ? new FightAi(1, o.level, seed ^ 0x5f3759df, o.pace === 'relaxed', tier)
+    : null;
 }
 
 function newMatch(aiOn: boolean, level: Opponent, pace: Pace): Match {
   const seed = Date.now() >>> 0;
+  const opts = { aiOn, level, pace };
   return {
     sim: createFight({ gap: START_GAP }),
     renderer: new FightRenderer(),
     player: new TypingFighter(0, wordPickers(enCommonWords, seededRng(seed))),
-    ai: makeAi(aiOn, level, pace, seed),
+    ai: makeAi(opts, seed, 0),
+    opts,
     maxCombo: 0,
     callout: { text: 'Fight!', until: 60 },
+    score: 0,
+    kos: 0,
+    tier: 0,
+    elapsed: 0,
+    nextAt: null,
   };
+}
+
+/** The next enemy walks in: tier from the score so far, the player keeps their HP plus a small heal. */
+function nextEnemy(m: Match) {
+  const tier = tierFor(m.score);
+  const sim = createFight({ gap: START_GAP });
+  sim.fighters[0].hp = Math.min(MAX_HP, m.sim.fighters[0].hp + HEAL);
+  sim.fighters[1].hp = enemyHp(tier);
+  const armed = weaponFor(tier) !== weaponFor(m.tier) ? weaponFor(tier) : null;
+  m.callout = {
+    text: armed
+      ? `Enemy ${m.kos + 1} has a ${armed === 'sword' ? 'sword' : 'staff'}!`
+      : tier > m.tier
+        ? `Enemy ${m.kos + 1} · Stronger!`
+        : `Enemy ${m.kos + 1}`,
+    until: 80,
+  };
+  m.sim = sim;
+  m.tier = tier;
+  m.ai = makeAi(m.opts, (Date.now() >>> 0) + m.kos, tier);
+  m.nextAt = null;
 }
 
 /** Blur radio inputs after a click so typing keys reach the fight again. */
@@ -106,7 +154,11 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
       firstRun.current = false;
       return;
     }
-    if (dev) match.current.ai = makeAi(aiOn, level, pace, Date.now() >>> 0);
+    if (dev) {
+      const m = match.current;
+      m.opts = { aiOn, level, pace };
+      m.ai = makeAi(m.opts, Date.now() >>> 0, m.tier);
+    }
     else rematch();
   }, [aiOn, level, pace]);
 
@@ -135,6 +187,12 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
       if (m.ai) inputs.push(...m.ai.think(m.sim));
       m.sim = step(m.sim, inputs);
       m.renderer.tick(m.sim);
+      m.elapsed++;
+      if (!playerDown(m.sim)) m.score += pointsFor(m.sim.events);
+      if (m.sim.winner === 0 && m.nextAt === null) {
+        m.kos++;
+        m.nextAt = m.elapsed + NEXT_ENEMY_TICKS;
+      } else if (m.nextAt !== null && m.elapsed >= m.nextAt) nextEnemy(m);
       for (const e of m.sim.events) {
         if (e.kind === 'hit' && e.attacker === 0) m.maxCombo = Math.max(m.maxCombo, e.combo);
         const text =
@@ -172,6 +230,8 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
         hitboxes: l.hitboxes,
         shake: settings.value.shake * motion,
         flash: settings.value.flash,
+        colors: { 1: enemyColor(m.tier) },
+        weapons: { 1: m.ai ? weaponFor(m.tier) : null },
       });
       const next = readHud(m);
       setHud((h) => (sameHud(h, next) && (!l.paused || h.tick === next.tick) ? h : next));
@@ -192,7 +252,7 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
     };
   }, []);
 
-  const over = hud.winner !== null;
+  const over = hud.over;
   const player = match.current.player;
   useTypingKeys(typing && !over && !paused, {
     onKey: (key, t) => {
@@ -225,11 +285,21 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
       <div class={s.layout}>
         <div class={s.stage}>
           <div class={s.hud}>
-            <HpBar label="You" hp={hud.hp[0]} combo={hud.combo[0]} />
-            <span class={`${s.fps} num`}>{dev && `${fps} fps · ${frameMs} ms`}</span>
+            <HpBar label="You" hp={hud.hp[0]} max={MAX_HP} combo={hud.combo[0]} />
+            <span class={`${s.fps} num`}>
+              Score {hud.score} · KOs {hud.kos}
+              {dev && ` · ${fps} fps · ${frameMs} ms`}
+            </span>
             <HpBar
-              label={!aiOn ? 'P2' : level === 'practice' ? 'Sparring dummy' : `AI · ${level}`}
+              label={
+                !aiOn
+                  ? 'P2'
+                  : level === 'practice'
+                    ? `Dummy ${hud.kos + 1}`
+                    : `Enemy ${hud.kos + 1} · Lv ${hud.tier + 1}`
+              }
               hp={hud.hp[1]}
+              max={hud.enemyMax}
               combo={hud.combo[1]}
               right
             />
@@ -243,10 +313,16 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
             )}
             {over && (
               <div class={s.result} role="dialog" aria-label="Fight over">
-                <strong class={s.resultTitle}>
-                  {hud.winner === 'draw' ? 'Draw' : hud.winner === 0 ? 'Victory' : 'Defeat'}
-                </strong>
+                <strong class={s.resultTitle}>Game over</strong>
                 <dl class={`${s.stats} num`}>
+                  <div>
+                    <dt>Score</dt>
+                    <dd>{hud.score}</dd>
+                  </div>
+                  <div>
+                    <dt>Enemies defeated</dt>
+                    <dd>{hud.kos}</dd>
+                  </div>
                   <div>
                     <dt>Best combo</dt>
                     <dd>{match.current.maxCombo}</dd>
@@ -261,13 +337,13 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
                   </div>
                   <div>
                     <dt>Time</dt>
-                    <dd>{Math.round(hud.tick / TICK_HZ)}s</dd>
+                    <dd>{Math.round(match.current.elapsed / TICK_HZ)}s</dd>
                   </div>
                 </dl>
                 <Button variant="primary" ref={rematchRef} onClick={rematch}>
-                  Rematch
+                  Play again
                 </Button>
-                <span class={s.meta}>Enter to rematch · Esc for the menu</span>
+                <span class={s.meta}>Enter to play again · Esc for the menu</span>
               </div>
             )}
           </div>
@@ -433,12 +509,20 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
   );
 }
 
+/** The player lost: knocked out, or a double knockout. */
+const playerDown = (s: FightState) => s.winner === 1 || s.winner === 'draw';
+
 function readHud(m: Match): Hud {
   const [p, o] = m.sim.fighters;
   return {
     hp: [p.hp, o.hp],
+    enemyMax: enemyHp(m.tier),
     combo: [p.combo, o.combo],
+    over: playerDown(m.sim),
     winner: m.sim.winner,
+    score: m.score,
+    kos: m.kos,
+    tier: m.tier,
     tick: m.sim.tick,
     counterReady: p.counter > 0,
     callout: m.callout && m.sim.tick < m.callout.until ? m.callout.text : null,
@@ -452,6 +536,9 @@ function sameHud(a: Hud, b: Hud) {
     a.combo[0] === b.combo[0] &&
     a.combo[1] === b.combo[1] &&
     a.winner === b.winner &&
+    a.score === b.score &&
+    a.kos === b.kos &&
+    a.tier === b.tier &&
     a.counterReady === b.counterReady &&
     a.callout === b.callout
   );
@@ -497,7 +584,19 @@ function Switch({
   );
 }
 
-function HpBar({ label, hp, combo, right }: { label: string; hp: number; combo: number; right?: boolean }) {
+function HpBar({
+  label,
+  hp,
+  max,
+  combo,
+  right,
+}: {
+  label: string;
+  hp: number;
+  max: number;
+  combo: number;
+  right?: boolean;
+}) {
   return (
     <div class={`${s.hp} ${right ? s.hpRight : ''}`}>
       <span>{label}</span>
@@ -507,9 +606,9 @@ function HpBar({ label, hp, combo, right }: { label: string; hp: number; combo: 
         aria-label={`${label} health`}
         aria-valuenow={hp}
         aria-valuemin={0}
-        aria-valuemax={MAX_HP}
+        aria-valuemax={max}
       >
-        <div class={s.hpFill} style={{ width: `${(hp / MAX_HP) * 100}%` }} />
+        <div class={s.hpFill} style={{ width: `${(hp / max) * 100}%` }} />
       </div>
       <span class="num">{hp}</span>
       <span class={`${s.combo} num`} aria-label={`${label} combo`}>

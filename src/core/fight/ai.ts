@@ -1,10 +1,11 @@
 import { seededRng } from '../textgen/generate';
+import { weaponPower } from './gauntlet';
 import type { MoveId } from './moves';
 import { telegraphing, type FighterId, type FightInput, type FightState } from './sim';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
-interface Level {
+export interface Level {
   /** Ticks between seeing an attack coming and reacting to it. */
   reaction: number;
   /** Chance to defend a telegraphed attack, and the share of those defences upgraded to a dodge. */
@@ -55,6 +56,22 @@ export const AI_LEVELS: Record<Difficulty, Level> = {
   },
 };
 
+/** Gauntlet scaling: each tier hits harder, attacks sooner and defends more. Capped so late enemies stay beatable. */
+export function scaleLevel(L: Level, tier: number): Level {
+  const k = Math.max(0, Math.min(tier, 12));
+  const f = 0.93 ** k;
+  return {
+    reaction: Math.max(4, Math.round(L.reaction * f)),
+    defend: Math.min(0.85, L.defend + 0.03 * k),
+    dodge: L.dodge,
+    charge: Math.max(30, Math.round(L.charge * f)),
+    rest: [Math.round(L.rest[0] * f), Math.round(L.rest[1] * f)],
+    counter: Math.min(0.95, L.counter + 0.03 * k),
+    power: Math.min(1.8, L.power * (1 + 0.06 * k) * weaponPower(tier)),
+    heavy: Math.min(0.85, L.heavy + 0.03 * k),
+  };
+}
+
 const LIGHT: MoveId[] = ['jab', 'cross'];
 const HEAVY: MoveId[] = ['hook', 'frontKick', 'uppercut', 'roundhouse'];
 /** Gives up holding a guard against a charge that never comes after this long. */
@@ -81,13 +98,17 @@ export class FightAi {
   private defend: 'block' | 'dodge' | null = null;
   private guarded = 0;
   private counterRolled = false;
+  private readonly L: Level;
 
   constructor(
     readonly fighter: FighterId,
     readonly level: Difficulty,
     seed: number,
     readonly relaxed = false,
+    /** Gauntlet tier: 0 is the plain difficulty, each tier above is stronger. */
+    tier = 0,
   ) {
+    this.L = scaleLevel(AI_LEVELS[level], tier);
     this.rng = seededRng(seed);
     this.rest = 60;
   }
@@ -97,7 +118,7 @@ export class FightAi {
     const me = s.fighters[this.fighter];
     const foe = s.fighters[this.fighter === 0 ? 1 : 0];
     if (s.winner !== null || s.hitstop > 0 || me.action.kind === 'ko') return [];
-    const L = AI_LEVELS[this.level];
+    const L = this.L;
     const fighter = this.fighter;
     const out: FightInput[] = [];
 

@@ -53,7 +53,7 @@ export const asciiSkin: Skin = {
     ctx.font = `bold ${c.h}px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = f.flash > 0.5 ? '#ffffff' : FIGHTER_COLORS[f.id];
+    ctx.fillStyle = f.flash > 0.5 ? '#ffffff' : f.color;
     for (const [a, b, side] of DRAW_ORDER) {
       const p = toScreen(cam, f.joints[a]);
       const q = toScreen(cam, f.joints[b]);

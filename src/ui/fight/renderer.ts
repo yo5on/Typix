@@ -1,8 +1,9 @@
 import { hurtboxes } from '../../core/fight/collision';
+import type { Weapon } from '../../core/fight/gauntlet';
 import { BONE_LIST, JOINTS, lerpV, type Joints, type Vec } from '../../core/fight/skeleton';
 import { attackInfo, type FighterId, type FightState } from '../../core/fight/sim';
 import { seededRng } from '../../core/textgen/generate';
-import { toScreen, type Camera, type FighterView, type Particle, type Skin } from './skin';
+import { FIGHTER_COLORS, toScreen, type Camera, type FighterView, type Particle, type Skin } from './skin';
 import { asciiSkin } from './skins/ascii';
 import { classicSkin } from './skins/classic';
 
@@ -16,6 +17,9 @@ export interface RenderOptions {
   /** 0–1 from settings (0 when reduced motion is on). */
   shake: number;
   flash: number;
+  /** Body colour overrides per fighter, e.g. a stronger enemy. */
+  colors?: Partial<Record<FighterId, string>>;
+  weapons?: Partial<Record<FighterId, Weapon | null>>;
 }
 
 const TRAIL_LEN = 7;
@@ -157,6 +161,10 @@ export class FightRenderer {
         facing: f.facing,
         action: f.action.kind,
         flash: this.flash[f.id] * o.flash,
+        color: o.colors?.[f.id] ?? FIGHTER_COLORS[f.id],
+        tick: t,
+        // A knocked-out fighter drops it.
+        weapon: f.ragdoll ? undefined : (o.weapons?.[f.id] ?? undefined),
       };
       o.skin.fighter(ctx, cam, view);
     }

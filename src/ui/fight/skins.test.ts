@@ -13,7 +13,7 @@ function stubContext(w = 960, h = 540) {
       if (key in t) return t[key];
       return () => {
         calls++;
-        return key === 'createLinearGradient' ? gradient : undefined;
+        return key.endsWith('Gradient') ? gradient : undefined;
       };
     },
     set(t, key: string, value) {

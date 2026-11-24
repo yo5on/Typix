@@ -1,5 +1,6 @@
 import type { HurtZone } from '../../core/fight/collision';
 import type { Joints, Vec } from '../../core/fight/skeleton';
+import type { Weapon } from '../../core/fight/gauntlet';
 import type { Action, FighterId } from '../../core/fight/sim';
 
 /**
@@ -40,6 +41,12 @@ export interface FighterView {
   action: Action['kind'];
   /** 1 right after being hit, fading to 0. */
   flash: number;
+  /** Body colour (FIGHTER_COLORS unless overridden). */
+  color: string;
+  /** Interpolated sim tick, for idle cloth motion. */
+  tick: number;
+  /** Held in the lead hand (gauntlet enemies at higher tiers). */
+  weapon?: Weapon;
 }
 
 export interface Particle {
