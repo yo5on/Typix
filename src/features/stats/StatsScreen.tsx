@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { navigate } from '../../app/router';
-import { progress } from '../../app/state';
+import { openLesson, progress } from '../../app/state';
 import { LESSONS } from '../../content/curriculum';
 import { fingerName } from '../../core/learning/fingers';
 import { overviewRecommendations, type Recommendation } from '../../core/learning/results';
@@ -49,7 +49,7 @@ export function StatsScreen() {
   const fights = fightRecord(p);
   const recs = overviewRecommendations(p, LESSONS, layout, daysSinceLastSession(p, now));
 
-  const open = (r: Recommendation) => navigate(r.kind === 'practice' ? 'practice' : 'learn');
+  const open = (r: Recommendation) => (r.kind === 'practice' ? navigate('practice') : openLesson(r.lessonId));
 
   return (
     <Screen

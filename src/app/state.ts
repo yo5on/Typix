@@ -1,6 +1,7 @@
 import { effect, signal } from '@preact/signals';
 import type { Progress, Settings } from '../core/store/schema';
 import { loadProgress, loadSettings, saveProgress, saveSettings } from '../core/store/persist';
+import { navigate } from './router';
 
 // One app-wide copy of progress and settings. Screens read and replace these signals; saving is automatic.
 
@@ -86,3 +87,11 @@ effect(() => {
 effect(() => {
   document.documentElement.dataset.textSize = settings.value.textSize;
 });
+
+/** A lesson for Learn to open straight away: set by recommendations, the Continue card and onboarding. */
+export const pendingLesson = signal<{ id: string; focus?: string } | null>(null);
+
+export function openLesson(id: string, focus?: string) {
+  pendingLesson.value = { id, focus };
+  navigate('learn');
+}

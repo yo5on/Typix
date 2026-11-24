@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { navigate } from '../../app/router';
-import { progress } from '../../app/state';
+import { pendingLesson, progress } from '../../app/state';
 import { findLesson, LESSONS } from '../../content/curriculum';
 import { lessonLabel, type Lesson } from '../../core/learning/lessons';
 import {
@@ -32,7 +32,13 @@ type Phase =
 
 /** Learning Mode: a calm, guided course. No timers, no fail states, no locks. */
 export function LearningScreen() {
-  const [phase, setPhase] = useState<Phase>({ name: 'list' });
+  const [phase, setPhase] = useState<Phase>(() => {
+    // Opened from a recommendation, the Continue card or onboarding: go straight into that lesson.
+    const want = pendingLesson.peek();
+    pendingLesson.value = null;
+    const lesson = want ? findLesson(want.id) : undefined;
+    return want && lesson ? { name: 'lesson', lesson, focus: want.focus, run: Date.now() } : { name: 'list' };
+  });
 
   const start = (lesson: Lesson, focus?: string) =>
     setPhase({ name: 'lesson', lesson, focus, run: Date.now() });

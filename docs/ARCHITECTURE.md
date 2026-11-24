@@ -95,6 +95,8 @@ Saves from a _newer_ version are refused rather than downgraded.
 
 `app/router.ts` is a small hash router (`#/`, `#/learn`, `#/settings`, …). Hash routing works on any static host without server rewrites. The current screen is keyed by route, so its enter animation (`.screen-enter` in `ui/motion.css`) replays on every navigation. On route change, focus moves to the screen's `[data-autofocus]` element.
 
+Recommendations, the Continue card and onboarding open a lesson directly with `openLesson(id)` (`app/state.ts`): it sets `pendingLesson`, which `LearningScreen` consumes on mount.
+
 Global keys: **Esc** returns to the menu, unless a `<dialog>` is open; dialogs handle Esc themselves.
 
 ## Theming and motion

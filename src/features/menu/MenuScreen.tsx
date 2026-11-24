@@ -1,6 +1,6 @@
 import { useRef } from 'preact/hooks';
 import { navigate, type Route } from '../../app/router';
-import { progress } from '../../app/state';
+import { openLesson, progress } from '../../app/state';
 import { LESSONS } from '../../content/curriculum';
 import { lessonLabel } from '../../core/learning/lessons';
 import { nextLesson } from '../../core/learning/results';
@@ -38,7 +38,12 @@ export function MenuScreen() {
       </header>
 
       <div class={s.content}>
-        <button type="button" class={s.continue} onClick={() => navigate('learn')} data-autofocus>
+        <button
+          type="button"
+          class={s.continue}
+          onClick={() => (next ? openLesson(next.id) : navigate('learn'))}
+          data-autofocus
+        >
           <span class={s.continueEyebrow}>{lessonsDone === 0 ? 'Start here' : 'Continue'}</span>
           <span class={s.continueTitle}>{next ? lessonLabel(next) : 'Finger Gym'}</span>
           <span class={s.continueDetail}>
