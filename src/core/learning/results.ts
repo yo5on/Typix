@@ -164,6 +164,19 @@ function weakKeyGym(
     .filter(({ k }) => k && k.recent.length >= 20 && mean(k.recent) < WEAK_ACCURACY)
     .sort((a, b) => mean(a.k!.recent) - mean(b.k!.recent))[0];
   const key = weakest && layout.byCode.get(weakest.code);
+  // A weak Shift is a Capitals problem, not a pinky one: u4.l1 drills left Shift, u4.l2 right Shift.
+  if (key && weakest.code.startsWith('Shift')) {
+    const side = weakest.code === 'ShiftLeft' ? 'Left' : 'Right';
+    const caps = lessons.find((l) => l.id === (side === 'Left' ? 'u4.l1' : 'u4.l2'));
+    return caps
+      ? {
+          kind: 'gym',
+          lessonId: caps.id,
+          label: lessonLabel(caps),
+          detail: `${side} Shift is below 90% over its last capitals. Hold it with the pinky of the other hand.`,
+        }
+      : null;
+  }
   const gym = key && lessons.find((l) => l.id === `gym.${key.finger.toLowerCase()}`);
   return gym
     ? {
@@ -230,7 +243,10 @@ export function recommend(
   };
 
   // A key in this lesson that is weak over its last 50 presses, in any mode → that finger's gym drill.
-  const lessonCodes = [...lesson.allowed].map((c) => layout.byChar.get(c)?.code);
+  const lessonCodes = [...lesson.allowed].flatMap((c) => {
+    const k = layout.byChar.get(c);
+    return [k?.code, k?.shiftCode];
+  });
   const weak = weakKeyGym(lessonCodes, progress, lessons, layout);
   const gym = weak && weak.lessonId !== lesson.id ? weak : null;
 

@@ -10,6 +10,7 @@ import {
   daysSinceLastSession,
   fightRecord,
   fingerStats,
+  shiftStats,
   isPressure,
   recentHeat,
   sessionsInRange,
@@ -138,6 +139,21 @@ export function StatsScreen() {
                     ) : (
                       <td colSpan={2} class={s.muted}>
                         Not typed yet
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                {shiftStats(p).map((k) => (
+                  <tr key={k.code}>
+                    <th scope="row">{k.label}</th>
+                    {k.accuracy !== null ? (
+                      <td class="num" colSpan={2}>
+                        <span class={s.bar} style={{ '--v': k.accuracy }} />
+                        {pct(k.accuracy)} <span class={s.muted}>last capitals, opposite hand</span>
+                      </td>
+                    ) : (
+                      <td colSpan={2} class={s.muted}>
+                        No capitals yet
                       </td>
                     )}
                   </tr>

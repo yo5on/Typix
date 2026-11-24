@@ -24,19 +24,31 @@ export interface KeyResult {
   results: number[];
 }
 
-/** Groups a session's keystrokes by the physical key that *should* have been pressed. */
+/**
+ * Groups a session's keystrokes by the physical key that *should* have been pressed.
+ * Shifted characters also score the Shift key they need (opposite hand): Shift is right when a shifted
+ * character came out and, if the input layer reported it, the Shift on the correct side was held.
+ * Forgetting Shift ("a" for "A") counts against Shift only, not the letter key.
+ */
 export function keyResults(events: TypingEvent[], layout: LayoutIndex): Map<string, KeyResult> {
   const out = new Map<string, KeyResult>();
-  for (const e of events) {
-    if (e.kind === 'backspace') continue;
-    const code = layout.byChar.get(e.expected)?.code;
-    if (!code) continue;
+  const add = (code: string, ok: boolean, e: TypingEvent) => {
     let r = out.get(code);
     if (!r) out.set(code, (r = { presses: 0, errors: 0, latencies: [], results: [] }));
     r.presses++;
-    r.results.push(e.kind === 'correct' ? 1 : 0);
-    if (e.kind === 'wrong') r.errors++;
-    else if (e.intervalMs !== null && e.intervalMs <= PAUSE_MS) r.latencies.push(e.intervalMs);
+    r.results.push(ok ? 1 : 0);
+    if (!ok) r.errors++;
+    else if (e.kind === 'correct' && e.intervalMs !== null && e.intervalMs <= PAUSE_MS)
+      r.latencies.push(e.intervalMs);
+  };
+  for (const e of events) {
+    if (e.kind === 'backspace') continue;
+    const want = layout.byChar.get(e.expected);
+    if (!want) continue;
+    const got = layout.byChar.get(e.actual);
+    const forgotShift = !!want.shiftCode && got?.code === want.code && !got.shiftCode;
+    add(want.code, e.kind === 'correct' || forgotShift, e);
+    if (want.shiftCode) add(want.shiftCode, !!got?.shiftCode && (!e.shift || e.shift === want.shiftCode), e);
   }
   return out;
 }
@@ -190,11 +202,14 @@ export function recordSession(progress: Progress, s: SessionInput): Progress {
 
 /** Lifetime weakest keys (at least `minPresses`), by recent error rate then speed. Codes, weakest first. */
 export function weakestKeys(progress: Progress, n = 5, minPresses = 10): string[] {
-  return Object.entries(progress.keys)
-    .filter(([code, k]) => code !== 'Space' && k.presses >= minPresses)
-    .map(([code, k]) => ({ code, err: 1 - avg(k.recent), ms: k.meanLatencyMs }))
-    .filter((k) => k.err > 0 || k.ms > 0)
-    .sort((a, b) => b.err - a.err || b.ms - a.ms)
-    .slice(0, n)
-    .map((k) => k.code);
+  return (
+    Object.entries(progress.keys)
+      // Space and Shift have no character of their own to put in drill text.
+      .filter(([code, k]) => code !== 'Space' && !code.startsWith('Shift') && k.presses >= minPresses)
+      .map(([code, k]) => ({ code, err: 1 - avg(k.recent), ms: k.meanLatencyMs }))
+      .filter((k) => k.err > 0 || k.ms > 0)
+      .sort((a, b) => b.err - a.err || b.ms - a.ms)
+      .slice(0, n)
+      .map((k) => k.code)
+  );
 }

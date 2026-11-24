@@ -85,7 +85,8 @@ export function fingerStats(progress: Progress, layout: LayoutIndex): FingerStat
     let correct = 0;
     let ms = 0;
     for (const [code, k] of Object.entries(progress.keys)) {
-      if (layout.byCode.get(code)?.finger !== finger) continue;
+      // Shift is scored with every capital, on top of the letter: counting it here would double-count presses.
+      if (code.startsWith('Shift') || layout.byCode.get(code)?.finger !== finger) continue;
       presses += k.presses;
       errors += k.errors;
       const ok = k.presses - k.errors;
@@ -99,6 +100,19 @@ export function fingerStats(progress: Progress, layout: LayoutIndex): FingerStat
       presses,
       accuracy: presses ? 1 - errors / presses : 0,
       meanMs: correct ? ms / correct : 0,
+    };
+  });
+}
+
+/** Left and right Shift over their last 50 uses (null when not used yet), for the Stats screen. */
+export function shiftStats(progress: Progress) {
+  return (['ShiftLeft', 'ShiftRight'] as const).map((code) => {
+    const recent = progress.keys[code]?.recent ?? [];
+    return {
+      code,
+      label: code === 'ShiftLeft' ? 'Left Shift' : 'Right Shift',
+      presses: progress.keys[code]?.presses ?? 0,
+      accuracy: recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : null,
     };
   });
 }

@@ -58,6 +58,8 @@ Rules, enforced by `eslint.config.js`:
 
 No schema change: Learning uses the existing `Progress.lessons`, `KeyStat.guidance` and the Learning settings (`showHands`, `handTone`, `guidanceOverride`, `errorMode`, `fingerLabels`). Unit 0 is not scored or recorded.
 
+Shift mastery: `useTypingKeys` reports which Shift is held, and `keyResults` scores `ShiftLeft` / `ShiftRight` as keys of their own for every shifted character (correct = a shifted character came out with the opposite-hand Shift). A forgotten Shift counts against Shift, not the letter. Capital hints fade only when both the letter and its Shift have faded; a weak Shift recommends the Capitals lesson for that side; Stats lists both Shift keys. Finger stats and drill focus leave Shift out.
+
 Finger colours are CSS variables (`--finger-l5` …). The colour-blind setting sets `<html data-palette="cb">`, which swaps them for four Okabe–Ito colours (`ui/base.css`) and stripes the lit key, so the keyboard, hands and demo caps all follow without code changes.
 
 First launch (`features/menu/Onboarding.tsx`) asks "How do you type today?" once, only for an empty profile, and stores `settings.onboarded`. "Place me" opens the placement test (`core/learning/placement.ts`): short stages, easiest first, stopping at the first one below 93% accuracy or 25 WPM. Passed units are marked completed, never mastered; the test is not recorded as a session. It is also linked from the lesson list.

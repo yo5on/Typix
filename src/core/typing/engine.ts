@@ -10,6 +10,8 @@ export type ErrorMode = 'stop' | 'continue';
 export interface Keystroke {
   /** KeyboardEvent.key (the character produced, or a name like "Backspace"). */
   key: string;
+  /** Which Shift key was held, when the input layer knows (opposite-hand Shift is part of Shift mastery). */
+  shift?: 'ShiftLeft' | 'ShiftRight';
   /** Milliseconds, from performance.now() minus any paused time. */
   t: number;
 }
@@ -21,6 +23,8 @@ export interface TypingEvent {
   expected: string;
   actual: string;
   t: number;
+  /** The Shift key held for this press, when known. */
+  shift?: 'ShiftLeft' | 'ShiftRight';
   /** Time since the previous recorded keystroke, or null for the first one. */
   intervalMs: number | null;
 }
@@ -53,7 +57,7 @@ export class TypingSession {
   }
 
   /** Feeds one key press. Returns the recorded event, or null if the key was ignored. */
-  input({ key, t }: Keystroke): TypingEvent | null {
+  input({ key, t, shift }: Keystroke): TypingEvent | null {
     if (this.done) return null;
     const last = this.events.at(-1);
     const intervalMs = last ? t - last.t : null;
@@ -75,6 +79,7 @@ export class TypingSession {
       actual: key,
       t,
       intervalMs,
+      ...(shift ? { shift } : {}),
     });
     if (correct || this.mode === 'continue') {
       this.typed[this.pos] = key;

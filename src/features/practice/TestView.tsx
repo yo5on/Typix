@@ -104,7 +104,7 @@ export function TestView({
   useTypingKeys(true, {
     onEscape: onExit,
     onTab: onRestart,
-    onKey(key, at) {
+    onKey(key, at, shift) {
       const t = timing.current;
       if (t.finished) return;
       if (t.pausedAt !== null) {
@@ -115,7 +115,7 @@ export function TestView({
         return;
       }
       if (key === 'Dead') return setDeadKey(true);
-      const ev = session.input({ key, t: at - t.pausedTotal });
+      const ev = session.input({ key, t: at - t.pausedTotal, shift });
       if (!ev) return;
       if (ev.kind === 'wrong') missed.add(ev.index);
       if (test.more && session.target.length - session.pos < REFILL_AT) session.append(test.more());

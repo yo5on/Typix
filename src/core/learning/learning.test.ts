@@ -10,7 +10,15 @@ import { TypingSession } from '../typing/engine';
 import { describeReach, HOME_KEY } from './fingers';
 import { applyGuidance, guidanceFor, nextGuidance } from './guidance';
 import { drillText, lessonLabel, type DrillSpec, type Lesson } from './lessons';
-import { combineRuns, lessonOutcome, nextLesson, recommend, recordLesson, type StepRun } from './results';
+import {
+  combineRuns,
+  lessonOutcome,
+  nextLesson,
+  overviewRecommendations,
+  recommend,
+  recordLesson,
+  type StepRun,
+} from './results';
 import { applyPlacement, passed, PLACEMENT } from './placement';
 
 const layout = indexLayout(usQwerty);
@@ -242,6 +250,14 @@ describe('recommendations (PLAN §4.5)', () => {
     const out = { ...outcomeOf('ru ur ru ur'), mastered: false };
     const recs = recommend(lesson, out, p, LESSONS, layout);
     expect(recs.find((r) => r.kind === 'gym')).toMatchObject({ lessonId: 'gym.l3' });
+  });
+
+  it('a weak Shift → the Capitals lesson for that side, not the pinky gym', () => {
+    const p = defaultProgress(0);
+    p.keys.ShiftRight = { ...emptyKeyStat(), presses: 30, recent: [...new Array(15).fill(1), 0, 0, 0, 0, 0] };
+    const recs = overviewRecommendations(p, LESSONS, layout, null);
+    expect(recs[0]).toMatchObject({ kind: 'gym', lessonId: 'u4.l2' });
+    expect(recs[0]!.detail).toContain('Right Shift');
   });
 
   it('orientation → just the next lesson', () => {

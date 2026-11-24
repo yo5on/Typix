@@ -49,6 +49,29 @@ describe('keyResults', () => {
     expect(r.get('Space')?.presses).toBe(1);
   });
 
+  it('scores the opposite-hand Shift for every capital and shifted symbol', () => {
+    const r = keyResults(session('Aj?', 'Aj?').events, layout);
+    expect(r.get('ShiftRight')).toMatchObject({ presses: 1, errors: 0 }); // A: left hand → right Shift
+    expect(r.get('ShiftLeft')).toMatchObject({ presses: 1, errors: 0 }); // ? (Shift + /): right hand → left Shift
+    expect(r.has('KeyJ') && !r.get('KeyJ')!.errors).toBe(true);
+  });
+
+  it('a forgotten Shift counts against Shift, not the letter', () => {
+    const r = keyResults(session('A', 'aA').events, layout);
+    expect(r.get('KeyA')).toMatchObject({ presses: 2, errors: 0 });
+    expect(r.get('ShiftRight')).toMatchObject({ presses: 2, errors: 1, results: [0, 1] });
+  });
+
+  it('a capital typed with the same-hand Shift counts against Shift only', () => {
+    const s = new TypingSession('AJ', 'stop');
+    s.input({ key: 'A', t: 0, shift: 'ShiftLeft' }); // wrong side
+    s.input({ key: 'J', t: 200, shift: 'ShiftLeft' }); // right side
+    const r = keyResults(s.events, layout);
+    expect(r.get('KeyA')).toMatchObject({ errors: 0 });
+    expect(r.get('ShiftRight')).toMatchObject({ presses: 1, errors: 1 });
+    expect(r.get('ShiftLeft')).toMatchObject({ presses: 1, errors: 0 });
+  });
+
   it('excludes pauses from key latency', () => {
     const s = new TypingSession('ab', 'stop');
     s.input({ key: 'a', t: 0 });

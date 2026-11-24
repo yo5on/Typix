@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { progress, settings } from '../../app/state';
 import { enCommonWords } from '../../content/words/en-common';
 import { describeReach, fingerName } from '../../core/learning/fingers';
-import { guidanceFor, HESITATION_MS } from '../../core/learning/guidance';
+import { guidanceFor, HESITATION_MS, type Guidance } from '../../core/learning/guidance';
 import { drillText, type DrillSpec, type Lesson, type StepSpec } from '../../core/learning/lessons';
 import type { StepRun } from '../../core/learning/results';
 import { weakestKeys } from '../../core/stats/aggregate';
@@ -212,17 +212,21 @@ function DrillStep({ spec, lesson, focus, onDone, onExit, onRestart }: StepProps
   const [, rerender] = useState(0);
   const [hesitating, setHesitating] = useState(false);
   const [deadKey, setDeadKey] = useState(false);
+  /** The Shift that should have been used, after a capital typed with the same-hand Shift. */
+  const [wrongShift, setWrongShift] = useState<string | null>(null);
   const finished = useRef(false);
 
   useTypingKeys(true, {
     onEscape: onExit,
     onTab: onRestart,
-    onKey(key, t) {
+    onKey(key, t, shift) {
       if (finished.current) return;
       if (key === 'Dead') return setDeadKey(true);
-      const ev = session.input({ key, t });
+      const ev = session.input({ key, t, shift });
       if (!ev) return;
       if (ev.kind === 'wrong') missed.add(ev.index);
+      const want = layout.byChar.get(ev.expected)?.shiftCode;
+      setWrongShift(want && ev.shift && ev.shift !== want ? want : null);
       if (session.done) {
         finished.current = true;
         onDone({ target: session.target, events: session.events, correctChars: session.correctChars });
@@ -241,12 +245,14 @@ function DrillStep({ spec, lesson, focus, onDone, onExit, onRestart }: StepProps
 
   const char = text[pos] ?? ' ';
   const stroke = layout.byChar.get(char)!;
-  let level = guidanceFor(progress.value, stroke.code, settings.value.guidanceOverride);
-  // Just missed this one: show where it is, whatever the level. Capitals keep the key + Shift hint, because
-  // stats are kept per letter key, so a faded lowercase letter says nothing about using Shift.
-  // shortcut: capitals never fade below level 2 in Auto; track Shift use per hand if that feels too helpful.
-  const auto = settings.value.guidanceOverride === 'auto';
-  if (missed.has(pos) || (auto && stroke.shiftCode)) level = Math.max(level, 2) as typeof level;
+  const override = settings.value.guidanceOverride;
+  // Capitals need both keys: the hint fades only once the letter *and* its Shift have faded.
+  let level = Math.max(
+    guidanceFor(progress.value, stroke.code, override),
+    stroke.shiftCode ? guidanceFor(progress.value, stroke.shiftCode, override) : 0,
+  ) as Guidance;
+  // Just missed this one: show where it is, whatever the level.
+  if (missed.has(pos)) level = Math.max(level, 2) as Guidance;
   const hint = level >= 2 || (level === 1 && hesitating);
   const chars = session.events.filter((e) => e.kind !== 'backspace');
   const accuracy = chars.length ? chars.filter((e) => e.kind === 'correct').length / chars.length : 1;
@@ -263,6 +269,12 @@ function DrillStep({ spec, lesson, focus, onDone, onExit, onRestart }: StepProps
         <TypingText target={text} pos={pos} typed={session.typed} missed={missed} />
       </div>
       <p class={s.reach}>{hint ? `${charName(char)}: ${describeReach(stroke.code, layout)}` : ' '}</p>
+      {wrongShift && (
+        <p class={s.reach} role="status">
+          Use the {wrongShift === 'ShiftLeft' ? 'left' : 'right'} Shift for this capital: Shift goes on the
+          hand opposite the letter.
+        </p>
+      )}
       {deadKey && (
         <p class={s.warning} role="alert">
           Your keyboard sent a "dead key", which usually means a US-International or non-US layout. Typix
