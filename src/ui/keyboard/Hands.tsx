@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useId, useMemo, useState } from 'preact/hooks';
 import type { LayoutIndex } from '../../core/layout/keys';
 import type { FingerId, KeyStroke } from '../../core/layout/types';
 import type { Settings } from '../../core/store/schema';
@@ -20,6 +20,8 @@ import s from './Hands.module.css';
 export const HANDS_BELOW = 1.8;
 const KEYBOARD_ROWS = 5;
 const U = 100; // SVG user units per key unit
+const W = 15 * U;
+const H = (KEYBOARD_ROWS + HANDS_BELOW) * U;
 
 /** home → reach → press → return, then a pause before the next demonstration (PLAN §9.2). */
 const REACH_MS = 180;
@@ -67,6 +69,7 @@ export function Hands({
   /** Change it to restart the demonstration. */
   replay?: number;
 }) {
+  const id = useId();
   const [phase, setPhase] = useState<Phase>('home');
   const rest = useMemo(() => restPose(layout), [layout]);
   const animate = mode === 'animate' && stroke !== null;
@@ -98,51 +101,94 @@ export function Hands({
   return (
     <svg
       class={`${s.hands} ${s[tone]}`}
-      viewBox={`0 0 ${15 * U} ${(KEYBOARD_ROWS + HANDS_BELOW) * U}`}
+      viewBox={`0 0 ${W} ${H}`}
       width={15 * unit}
       height={(KEYBOARD_ROWS + HANDS_BELOW) * unit}
       style={{ '--hand-dur': `${dur}ms` }}
       aria-hidden="true"
       data-phase={phase}
     >
-      {(['L', 'R'] as const).map((side) => (
-        <g key={side} class={s.hand}>
-          <path
-            class={s.palm}
-            d={smoothPath(palmOutline(side, { x: 0, y: 0 }))}
-            style={{ transform: `translate(${pose[side].shift.x * U}px, ${pose[side].shift.y * U}px)` }}
-          />
-          {FINGERS.filter((f) => f[0] === side).map((f) => {
-            const p = pose[side].fingers[f]!;
-            const w = fingerWidth(f) * U;
-            const restLen = Math.hypot(
-              restTip(f, layout).x - rest[side].fingers[f]!.knuckle.x,
-              restTip(f, layout).y - rest[side].fingers[f]!.knuckle.y,
-            );
-            const L = restLen * U;
-            return (
-              <g
-                key={f}
-                class={`${s.finger} ${active.has(f) ? s.active : ''}`}
-                data-finger={f}
-                style={{
-                  '--finger': fingerVar(f),
-                  transform: `translate(${p.knuckle.x * U}px, ${p.knuckle.y * U}px) rotate(${p.angle}deg) scale(1, ${p.stretch})`,
-                }}
-              >
-                {/* Drawn pointing up from the knuckle; the tip pad centre sits at distance L. */}
-                <rect x={-w / 2} y={-L - w * 0.45} width={w} height={L + w * 0.75} rx={w / 2} />
-                <ellipse class={s.nail} cx={0} cy={-L - w * 0.05} rx={w * 0.27} ry={w * 0.32} />
-              </g>
-            );
-          })}
-        </g>
-      ))}
+      <defs>
+        {/* The wrists fade out instead of being cut off at the bottom edge. */}
+        <linearGradient id={`${id}-fade`} gradientUnits="userSpaceOnUse" x1={0} y1={6.05 * U} x2={0} y2={H}>
+          <stop offset={0} stop-color="#fff" />
+          <stop offset={1} stop-color="#000" />
+        </linearGradient>
+        <mask id={`${id}-wrist`} maskUnits="userSpaceOnUse" x={0} y={0} width={W} height={H}>
+          <rect width={W} height={H} fill={`url(#${id}-fade)`} />
+        </mask>
+      </defs>
+      {(['L', 'R'] as const).map((side) => {
+        const palm = smoothPath(palmOutline(side, { x: 0, y: 0 }));
+        const palmMove = { transform: `translate(${pose[side].shift.x * U}px, ${pose[side].shift.y * U}px)` };
+        const fingers = FINGERS.filter((f) => f[0] === side).map((f) => {
+          const p = pose[side].fingers[f]!;
+          const restLen = Math.hypot(
+            restTip(f, layout).x - rest[side].fingers[f]!.knuckle.x,
+            restTip(f, layout).y - rest[side].fingers[f]!.knuckle.y,
+          );
+          return {
+            f,
+            shape: fingerShape(fingerWidth(f) * U, restLen * U, f[1] === '1'),
+            style: {
+              '--finger': fingerVar(f),
+              transform: `translate(${p.knuckle.x * U}px, ${p.knuckle.y * U}px) rotate(${p.angle}deg) scale(1, ${p.stretch})`,
+            },
+            cls: `${s.finger} ${active.has(f) ? s.active : ''}`,
+          };
+        });
+        // Two passes, so each hand is one silhouette: every outline first, then every fill on top. Only the
+        // outer edge shows, with no seams where fingers meet the palm.
+        return (
+          <g key={side} class={s.hand} mask={`url(#${id}-wrist)`}>
+            <g class={s.outline}>
+              <path class={s.palm} d={palm} style={palmMove} />
+              {fingers.map((x) => (
+                <g key={x.f} class={x.cls} style={x.style}>
+                  <path d={x.shape.body} />
+                </g>
+              ))}
+            </g>
+            <g class={s.fill}>
+              <path class={s.palm} d={palm} style={palmMove} />
+              {fingers.map((x) => (
+                <g key={x.f} class={x.cls} style={x.style} data-finger={x.f}>
+                  <path d={x.shape.body} />
+                  <path class={s.crease} d={x.shape.creases} />
+                  <path class={s.nail} d={x.shape.nail} />
+                </g>
+              ))}
+            </g>
+          </g>
+        );
+      })}
       {presses.map((p: Vec, i) => (
         <circle key={`${i}-${replay}`} class={s.press} cx={p.x * U} cy={p.y * U} r={U * 0.32} />
       ))}
     </svg>
   );
+}
+
+/**
+ * One finger, drawn pointing up from its knuckle at (0, 0), with the fingertip pad centred at distance `L`:
+ * a body that tapers towards a rounded tip, two knuckle creases (one on the thumb) and a nail.
+ */
+function fingerShape(w: number, L: number, thumb: boolean) {
+  const base = w / 2;
+  const tip = w * (thumb ? 0.46 : 0.41);
+  const top = -L - w * 0.45;
+  const cy = top + tip;
+  const bottom = w * 0.3; // hidden inside the palm
+  const body = `M${-base} ${bottom} C${-base} ${-L * 0.3} ${-tip} ${cy + w * 0.5} ${-tip} ${cy} A${tip} ${tip} 0 0 1 ${tip} ${cy} C${tip} ${cy + w * 0.5} ${base} ${-L * 0.3} ${base} ${bottom}Z`;
+  const crease = (y: number, half: number) => `M${-half} ${y} Q0 ${y + w * 0.06} ${half} ${y}`;
+  const creases = thumb
+    ? crease(-L * 0.55, tip * 0.6)
+    : `${crease(-L * 0.38, base * 0.55)} ${crease(-L * 0.72, tip * 0.6)}`;
+  const nw = tip * 0.62;
+  const nt = top + w * 0.08;
+  const nb = nt + w * 0.42;
+  const nail = `M${-nw} ${nb} L${-nw} ${nt + nw} A${nw} ${nw} 0 0 1 ${nw} ${nt + nw} L${nw} ${nb} Q0 ${nb + w * 0.08} ${-nw} ${nb}Z`;
+  return { body, creases, nail };
 }
 
 /** A closed outline through the points, rounded with quadratic curves between edge midpoints. */

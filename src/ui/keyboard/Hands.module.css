@@ -31,11 +31,12 @@
   --skin-edge: #4d2f1d;
   --nail: #a77b5f;
 }
+/* An outlined silhouette: the outline pass draws the edge, an opaque background fill covers the inside. */
 .ghost {
-  --skin: transparent;
+  --skin: var(--bg-1);
   --skin-edge: var(--text-2);
-  --nail: transparent;
-  --skin-alpha: 1;
+  --nail: var(--bg-3);
+  --skin-alpha: 0.6;
 }
 
 .hand {
@@ -49,27 +50,42 @@
   transition: transform var(--hand-dur) cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 
-.palm,
-.finger rect {
-  fill: var(--skin);
+/* Outline pass: every shape in the edge colour with a thick stroke; the fill pass hides all but the outer half. */
+.outline path {
+  fill: var(--skin-edge);
   stroke: var(--skin-edge);
-  stroke-width: 4;
+  stroke-width: 8;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.outline .active path {
+  fill: var(--finger);
+  stroke: var(--finger);
+}
+
+.fill .palm,
+.fill .finger > path:first-child {
+  fill: var(--skin);
+}
+.fill .active > path:first-child {
+  fill: color-mix(in srgb, var(--finger) 50%, var(--skin));
+}
+
+.crease {
+  fill: none;
+  stroke: var(--skin-edge);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.45;
   vector-effect: non-scaling-stroke;
 }
 
 .nail {
   fill: var(--nail);
-  opacity: 0.7;
-}
-
-/* The finger to use: outlined and tinted in its finger colour, matching the lit key. */
-.active rect {
-  fill: color-mix(in srgb, var(--finger) 55%, var(--skin));
-  stroke: var(--finger);
-  stroke-width: 6;
-}
-.ghost .active rect {
-  fill: color-mix(in srgb, var(--finger) 30%, transparent);
+  stroke: var(--skin-edge);
+  stroke-width: 1.5;
+  stroke-opacity: 0.4;
+  vector-effect: non-scaling-stroke;
 }
 
 /* A soft ring where the fingertip presses the key. */
