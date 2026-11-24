@@ -13,7 +13,9 @@ import {
   type StepRun,
 } from '../../core/learning/results';
 import { Screen } from '../../ui/components/Screen';
+import { PLACEMENT_ID } from '../../core/learning/placement';
 import { LessonList } from './LessonList';
+import { Placement } from './Placement';
 import { Step } from './Steps';
 import { Summary } from './Summary';
 import { layout } from './shared';
@@ -21,6 +23,7 @@ import s from './learning.module.css';
 
 type Phase =
   | { name: 'list' }
+  | { name: 'placement' }
   | { name: 'lesson'; lesson: Lesson; focus?: string; run: number }
   | {
       name: 'summary';
@@ -36,6 +39,7 @@ export function LearningScreen() {
     // Opened from a recommendation, the Continue card or onboarding: go straight into that lesson.
     const want = pendingLesson.peek();
     pendingLesson.value = null;
+    if (want?.id === PLACEMENT_ID) return { name: 'placement' };
     const lesson = want ? findLesson(want.id) : undefined;
     return want && lesson ? { name: 'lesson', lesson, focus: want.focus, run: Date.now() } : { name: 'list' };
   });
@@ -63,11 +67,19 @@ export function LearningScreen() {
   }
 
   const toList = () => setPhase({ name: 'list' });
-  const title = phase.name === 'list' ? 'Learn Typing' : lessonLabel(phase.lesson);
+  const title =
+    phase.name === 'list'
+      ? 'Learn Typing'
+      : phase.name === 'placement'
+        ? 'Placement test'
+        : lessonLabel(phase.lesson);
 
   return (
     <Screen title={title} onBack={() => (phase.name === 'list' ? navigate('menu') : toList())}>
-      {phase.name === 'list' && <LessonList onStart={(l) => start(l)} />}
+      {phase.name === 'list' && (
+        <LessonList onStart={(l) => start(l)} onPlacement={() => setPhase({ name: 'placement' })} />
+      )}
+      {phase.name === 'placement' && <Placement onStart={(l) => start(l)} onList={toList} />}
       {phase.name === 'lesson' && (
         <LessonRunner
           key={phase.run}

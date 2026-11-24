@@ -61,6 +61,8 @@ export interface Settings {
   guidanceOverride: 'auto' | 0 | 1 | 2 | 3;
   layout: 'us-qwerty';
   guardWindowBoost: boolean;
+  /** The first-launch "How do you type today?" screen has been answered or skipped. */
+  onboarded: boolean;
 }
 
 export const MAX_SESSIONS = 300;
@@ -95,5 +97,6 @@ export function defaultSettings(): Settings {
     guidanceOverride: 'auto',
     layout: 'us-qwerty',
     guardWindowBoost: false,
+    onboarded: false,
   };
 }

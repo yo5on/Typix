@@ -478,3 +478,14 @@
   font-size: var(--fs-14);
   color: var(--text-2);
 }
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}

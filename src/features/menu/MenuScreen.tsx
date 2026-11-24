@@ -1,10 +1,11 @@
-import { useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { navigate, type Route } from '../../app/router';
-import { openLesson, progress } from '../../app/state';
+import { openLesson, progress, settings } from '../../app/state';
 import { LESSONS } from '../../content/curriculum';
 import { lessonLabel } from '../../core/learning/lessons';
 import { nextLesson } from '../../core/learning/results';
 import { Icon, type IconName } from '../../ui/components/Icon';
+import { Onboarding } from './Onboarding';
 import s from './MenuScreen.module.css';
 
 const items: { route: Route; label: string; detail: string; icon: IconName }[] = [
@@ -20,6 +21,9 @@ export function MenuScreen() {
   const p = progress.value;
   const lessonsDone = Object.values(p.lessons).filter((l) => l.completed).length;
   const next = nextLesson(p, LESSONS);
+  // First launch only: never for a profile that already has progress (e.g. after an import).
+  const onboarding = !settings.value.onboarded && lessonsDone === 0 && p.sessions.length === 0;
+  useEffect(() => document.querySelector<HTMLElement>('[data-autofocus]')?.focus(), [onboarding]);
 
   // ↑/↓ move between menu entries (Tab still works too).
   function onKeyDown(e: KeyboardEvent) {
@@ -38,37 +42,43 @@ export function MenuScreen() {
       </header>
 
       <div class={s.content}>
-        <button
-          type="button"
-          class={s.continue}
-          onClick={() => (next ? openLesson(next.id) : navigate('learn'))}
-          data-autofocus
-        >
-          <span class={s.continueEyebrow}>{lessonsDone === 0 ? 'Start here' : 'Continue'}</span>
-          <span class={s.continueTitle}>{next ? lessonLabel(next) : 'Finger Gym'}</span>
-          <span class={s.continueDetail}>
-            {next ? next.blurb : 'Course complete. Keep every finger sharp with short drills.'}
-          </span>
-          <span class={s.continueAction}>
-            Enter <Icon name="chevron" size={16} />
-          </span>
-        </button>
+        {onboarding ? (
+          <Onboarding />
+        ) : (
+          <>
+            <button
+              type="button"
+              class={s.continue}
+              onClick={() => (next ? openLesson(next.id) : navigate('learn'))}
+              data-autofocus
+            >
+              <span class={s.continueEyebrow}>{lessonsDone === 0 ? 'Start here' : 'Continue'}</span>
+              <span class={s.continueTitle}>{next ? lessonLabel(next) : 'Finger Gym'}</span>
+              <span class={s.continueDetail}>
+                {next ? next.blurb : 'Course complete. Keep every finger sharp with short drills.'}
+              </span>
+              <span class={s.continueAction}>
+                Enter <Icon name="chevron" size={16} />
+              </span>
+            </button>
 
-        <nav aria-label="Main menu">
-          <ul class={s.list} ref={listRef}>
-            {items.map((item) => (
-              <li key={item.route}>
-                <button type="button" class={s.item} onClick={() => navigate(item.route)}>
-                  <span class={s.itemIcon}>
-                    <Icon name={item.icon} />
-                  </span>
-                  <span class={s.itemLabel}>{item.label}</span>
-                  <span class={s.itemDetail}>{item.detail}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+            <nav aria-label="Main menu">
+              <ul class={s.list} ref={listRef}>
+                {items.map((item) => (
+                  <li key={item.route}>
+                    <button type="button" class={s.item} onClick={() => navigate(item.route)}>
+                      <span class={s.itemIcon}>
+                        <Icon name={item.icon} />
+                      </span>
+                      <span class={s.itemLabel}>{item.label}</span>
+                      <span class={s.itemDetail}>{item.detail}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </>
+        )}
       </div>
 
       <footer class={s.footer}>

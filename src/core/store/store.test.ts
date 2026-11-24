@@ -68,7 +68,16 @@ describe('validation', () => {
   });
 
   it('sanitizes settings field by field', () => {
-    const s = sanitizeSettings({ sfx: 0.3, shake: 7, textSize: 'XL', layout: 'dvorak', evil: true });
+    const s = sanitizeSettings({
+      sfx: 0.3,
+      shake: 7,
+      textSize: 'XL',
+      layout: 'dvorak',
+      evil: true,
+      onboarded: true,
+    });
+    expect(s.onboarded).toBe(true);
+    expect(sanitizeSettings({ onboarded: 'yes' }).onboarded).toBe(false);
     expect(s.sfx).toBe(0.3);
     expect(s.shake).toBe(defaultSettings().shake);
     expect(s.textSize).toBe('XL');

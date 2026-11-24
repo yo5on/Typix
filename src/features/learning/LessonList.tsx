@@ -11,7 +11,13 @@ const keysOf = (l: Lesson) =>
   [...(l.newKeys || l.focus || '')].map((c) => c.toUpperCase()).filter((c, i, a) => a.indexOf(c) === i);
 
 /** Every lesson, always playable. The recommended one is marked, nothing is locked. */
-export function LessonList({ onStart }: { onStart: (l: Lesson) => void }) {
+export function LessonList({
+  onStart,
+  onPlacement,
+}: {
+  onStart: (l: Lesson) => void;
+  onPlacement: () => void;
+}) {
   useFocusOnMount();
   const p = progress.value;
   const next = nextLesson(p, LESSONS);
@@ -36,7 +42,10 @@ export function LessonList({ onStart }: { onStart: (l: Lesson) => void }) {
         </p>
       )}
       <p class={`${s.progressLine} num`}>
-        {done} of {total} lessons completed · every lesson is open, skip ahead whenever you like
+        {done} of {total} lessons completed · every lesson is open, skip ahead whenever you like ·{' '}
+        <button type="button" class={s.linkButton} onClick={onPlacement}>
+          Already type? Take the placement test
+        </button>
       </p>
 
       {[...UNITS, ...CODE_TRACKS, GYM].map((u) => (

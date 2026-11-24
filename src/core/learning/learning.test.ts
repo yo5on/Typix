@@ -11,6 +11,7 @@ import { describeReach, HOME_KEY } from './fingers';
 import { applyGuidance, guidanceFor, nextGuidance } from './guidance';
 import { drillText, lessonLabel, type DrillSpec, type Lesson } from './lessons';
 import { combineRuns, lessonOutcome, nextLesson, recommend, recordLesson, type StepRun } from './results';
+import { applyPlacement, passed, PLACEMENT } from './placement';
 
 const layout = indexLayout(usQwerty);
 
@@ -49,7 +50,7 @@ describe('curriculum', () => {
         }
       }
     }
-  });
+  }, 30_000); // every lesson × 40 seeds
 
   it('every demo and find step only shows keys the layout can type', () => {
     for (const l of LESSONS)
@@ -299,5 +300,34 @@ describe('code tracks', () => {
     // Fewer than 3 lines with the key: all lines stay in play.
     const amp = drillText({ ...spec, count: 30 }, l, { rng: seededRng(4), words: [], focus: '&' });
     expect(amp).toContain('s.len');
+  });
+});
+
+describe('placement', () => {
+  it('every stage points at a real lesson and generates text', () => {
+    for (const st of PLACEMENT) {
+      const l = findLesson(st.lessonId)!;
+      expect(l, st.lessonId).toBeTruthy();
+      expect(drillText(st.spec, l, { rng: seededRng(1), words: enCommonWords }).length).toBeGreaterThan(10);
+    }
+    expect(PLACEMENT.flatMap((s) => s.units)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('passes on accuracy and speed together', () => {
+    expect(passed({ accuracy: 0.97, wpm: 40 })).toBe(true);
+    expect(passed({ accuracy: 0.9, wpm: 80 })).toBe(false);
+    expect(passed({ accuracy: 1, wpm: 15 })).toBe(false);
+  });
+
+  it('marks the placed units completed, never mastered, and keeps old records', () => {
+    const p = defaultProgress(0);
+    p.lessons['u1.l1'] = { completed: true, mastered: true, best: 0.99, plays: 3 };
+    const out = applyPlacement(p, [0, 1, 2], LESSONS);
+    expect(out.lessons['u1.l1']).toEqual(p.lessons['u1.l1']);
+    expect(out.lessons['u2.l7']).toEqual({ completed: true, mastered: false, best: 0, plays: 0 });
+    expect(out.lessons['u3.l1']).toBeUndefined();
+    expect(out.lessons['gym.l5']).toBeUndefined();
+    expect(nextLesson(out, LESSONS)!.id).toBe('u3.l1');
+    expect(p.lessons['u2.l1']).toBeUndefined(); // input untouched
   });
 });

@@ -76,6 +76,7 @@ const settingChecks: { [K in keyof Settings]: (v: unknown) => boolean } = {
   guidanceOverride: oneOf<string | number>('auto', 0, 1, 2, 3),
   layout: oneOf('us-qwerty'),
   guardWindowBoost: bool,
+  onboarded: bool,
 };
 
 /** Keeps every valid field, replaces missing or invalid ones with defaults, drops unknown keys. */

@@ -58,6 +58,8 @@ Rules, enforced by `eslint.config.js`:
 
 No schema change: Learning uses the existing `Progress.lessons`, `KeyStat.guidance` and the Learning settings (`showHands`, `handTone`, `guidanceOverride`, `errorMode`, `fingerLabels`). Unit 0 is not scored or recorded.
 
+First launch (`features/menu/Onboarding.tsx`) asks "How do you type today?" once, only for an empty profile, and stores `settings.onboarded`. "Place me" opens the placement test (`core/learning/placement.ts`): short stages, easiest first, stopping at the first one below 93% accuracy or 25 WPM. Passed units are marked completed, never mastered; the test is not recorded as a session. It is also linked from the lesson list.
+
 ## Stats & Progress
 
 `core/stats/dashboard.ts` computes the screen's numbers as pure functions that take `now` as an argument, so tests can check them against sums of stored sessions. Speed, accuracy and the WPM trend come from `sessions` filtered to 7 days, 30 days or all; "all" covers only the 300 kept sessions. WPM and accuracy are weighted by session duration. Calm means Learning and Practice; under pressure means Fight (`mode === 'fight'`). The key mastery map uses each key's last 50 results, and the finger table uses lifetime per-key stats. Recommendations (`overviewRecommendations` in `core/learning/results`) cover the §4.5 rows that don't need Fight. They open the matching mode but not a specific lesson, because the router has no parameters.
