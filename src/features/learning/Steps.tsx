@@ -192,6 +192,7 @@ const DRILL_NAMES: Record<DrillSpec['style'], string> = {
   sentences: 'Sentences',
   fixed: 'Try it',
   mixed: 'Words and symbols',
+  lines: 'Code',
 };
 
 const LEVEL_NAMES = ['no hint', 'hint when you pause', 'key and finger', 'full: hands and key'];

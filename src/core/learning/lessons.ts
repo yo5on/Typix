@@ -14,9 +14,12 @@ export type StepSpec =
 export interface DrillSpec {
   kind: 'drill';
   /** 'mixed': real words with the lesson's punctuation, numbers or symbols worked in (Units 6–8). */
-  style: 'single' | 'pairs' | 'words' | 'review' | 'sentences' | 'fixed' | 'mixed';
+  /** 'lines': `count` lines picked from `lines` (code tracks). */
+  style: 'single' | 'pairs' | 'words' | 'review' | 'sentences' | 'fixed' | 'mixed' | 'lines';
   /** Fixed text, for `style: 'fixed'`. */
   text?: string;
+  /** Hand-written lines, for `style: 'lines'`. One line each: the engine has no Enter key yet. */
+  lines?: readonly string[];
   /** Only words containing one of these strings (e.g. common letter pairs). */
   contains?: string[];
   /** Share of words given a capital first letter (when the capital is allowed). */
@@ -26,9 +29,9 @@ export interface DrillSpec {
 }
 
 export interface Lesson {
-  /** 'u1.l2', or 'gym.l2' for Finger Gym drills. */
+  /** 'u1.l2', 'gym.l2' for Finger Gym drills, 'py.l1' for code tracks. */
   id: string;
-  group: 'course' | 'gym';
+  group: 'course' | 'gym' | 'code';
   unit: number;
   /** Position inside the unit, from 1. */
   index: number;
@@ -41,6 +44,8 @@ export interface Lesson {
   /** Characters to favour in generated text. Defaults to `newKeys`. */
   focus?: string;
   steps: StepSpec[];
+  /** Code tracks: the language name, shown instead of the unit number. */
+  track?: string;
   /** Unit 0 is orientation only: nothing is scored or recorded. */
   scored: boolean;
 }
@@ -68,7 +73,11 @@ const isLetter = (c: string) => /^[a-z]$/.test(c);
 
 /** "1.2 · D and K", or "Finger Gym · Left index finger". */
 export const lessonLabel = (l: Lesson) =>
-  l.group === 'gym' ? `Finger Gym · ${l.title}` : `${l.unit}.${l.index} · ${l.title}`;
+  l.group === 'gym'
+    ? `Finger Gym · ${l.title}`
+    : l.track
+      ? `${l.track} · ${l.title}`
+      : `${l.unit}.${l.index} · ${l.title}`;
 
 /** The characters a lesson focuses on, for text generation and the summary. */
 export function lessonFocus(lesson: Lesson, override?: string): string {
@@ -236,5 +245,17 @@ export function drillText(spec: DrillSpec, lesson: Lesson, ctx: TextContext): st
       return sentences(lesson, ctx, spec.count ?? 3, spec);
     case 'mixed':
       return mixed(spec, lesson, ctx);
+    case 'lines': {
+      const all = spec.lines ?? [];
+      // "Repeat with focus on {": prefer lines that use the weak keys.
+      const withFocus = ctx.focus ? all.filter((l) => [...ctx.focus!].some((c) => l.includes(c))) : [];
+      const pool = withFocus.length >= 3 ? withFocus : all;
+      const out: string[] = [];
+      while (out.length < Math.min(spec.count ?? 6, pool.length * 2)) {
+        const line = pick(pool, rng);
+        if (line !== out.at(-1) || pool.length === 1) out.push(line);
+      }
+      return out.join(' ');
+    }
   }
 }

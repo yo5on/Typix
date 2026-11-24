@@ -1,4 +1,5 @@
 import type { DrillSpec, Lesson, StepSpec, Unit } from '../../core/learning/lessons';
+import { CODE_TRACKS } from './code';
 
 // The Learning course as data (US QWERTY). PLAN §5.2. Every lesson is always playable: no locks.
 
@@ -417,7 +418,9 @@ export const GYM: Unit = {
   ],
 };
 
-/** Course lessons in order, then the gym. */
-export const LESSONS: readonly Lesson[] = [...UNITS.flatMap((u) => u.lessons), ...GYM.lessons];
+/** Course lessons in order, then the code tracks, then the gym. */
+export const LESSONS: readonly Lesson[] = [...UNITS, ...CODE_TRACKS, GYM].flatMap((u) => u.lessons);
 
 export const findLesson = (id: string) => LESSONS.find((l) => l.id === id);
+
+export { CODE_TRACKS };

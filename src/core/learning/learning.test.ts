@@ -9,7 +9,7 @@ import { seededRng } from '../textgen/generate';
 import { TypingSession } from '../typing/engine';
 import { describeReach, HOME_KEY } from './fingers';
 import { applyGuidance, guidanceFor, nextGuidance } from './guidance';
-import { drillText, type Lesson } from './lessons';
+import { drillText, lessonLabel, type DrillSpec, type Lesson } from './lessons';
 import { combineRuns, lessonOutcome, nextLesson, recommend, recordLesson, type StepRun } from './results';
 
 const layout = indexLayout(usQwerty);
@@ -275,5 +275,29 @@ describe('wide-focus summaries', () => {
     const recs = recommend(lesson, out, defaultProgress(0), LESSONS, layout);
     expect(recs[0]!.kind).toBe('repeat');
     expect((recs[0] as { focus?: string }).focus!.length).toBeLessThanOrEqual(2);
+  });
+});
+
+describe('code tracks', () => {
+  it('has Python, C, Java and C++, labelled by language, with every line typable', () => {
+    const code = LESSONS.filter((l) => l.group === 'code');
+    expect([...new Set(code.map((l) => l.track))]).toEqual(['Python', 'C', 'Java', 'C++']);
+    expect(lessonLabel(findLesson('cpp.l4')!)).toBe('C++ · Real lines');
+    for (const l of code)
+      for (const s of l.steps)
+        if (s.kind === 'drill')
+          for (const line of s.lines!)
+            for (const c of line) expect(layout.byChar.has(c), `${l.id} ${c}`).toBe(true);
+  });
+
+  it('a focus override prefers lines with the weak keys', () => {
+    const l = findLesson('c.l2')!;
+    const spec = l.steps[0] as DrillSpec;
+    const eq = drillText({ ...spec, count: 30 }, l, { rng: seededRng(4), words: [], focus: '=' });
+    for (const part of ['*ptr = 0;', 'a[i] = b[i];', 'n %= 10;']) expect(eq).toContain(part);
+    expect(eq).not.toContain('p->next');
+    // Fewer than 3 lines with the key: all lines stay in play.
+    const amp = drillText({ ...spec, count: 30 }, l, { rng: seededRng(4), words: [], focus: '&' });
+    expect(amp).toContain('s.len');
   });
 });

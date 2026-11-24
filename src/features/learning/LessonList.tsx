@@ -1,5 +1,5 @@
 import { progress } from '../../app/state';
-import { GYM, LESSONS, UNITS } from '../../content/curriculum';
+import { CODE_TRACKS, GYM, LESSONS, UNITS } from '../../content/curriculum';
 import { lessonLabel, type Lesson, type Unit } from '../../core/learning/lessons';
 import { nextLesson } from '../../core/learning/results';
 import { Icon } from '../../ui/components/Icon';
@@ -39,7 +39,7 @@ export function LessonList({ onStart }: { onStart: (l: Lesson) => void }) {
         {done} of {total} lessons completed · every lesson is open, skip ahead whenever you like
       </p>
 
-      {[...UNITS, GYM].map((u) => (
+      {[...UNITS, ...CODE_TRACKS, GYM].map((u) => (
         <UnitSection key={u.id} unit={u} next={next} onStart={onStart} />
       ))}
     </div>
@@ -56,12 +56,13 @@ function UnitSection({
   onStart: (l: Lesson) => void;
 }) {
   const p = progress.value;
-  const gym = unit.lessons[0]?.group === 'gym';
+  const group = unit.lessons[0]?.group;
+  const gym = group === 'gym';
   return (
     <section class={s.unit} aria-labelledby={`unit-${unit.id}`}>
       <header class={s.unitHead}>
         <h2 id={`unit-${unit.id}`} class={s.unitTitle}>
-          {gym ? unit.title : `Unit ${unit.id} · ${unit.title}`}
+          {gym ? unit.title : group === 'code' ? `Code · ${unit.title}` : `Unit ${unit.id} · ${unit.title}`}
         </h2>
         <p class={s.unitBlurb}>{unit.blurb}</p>
       </header>
@@ -86,7 +87,9 @@ function UnitSection({
                 onClick={() => onStart(l)}
                 aria-label={`${lessonLabel(l)}. ${l.blurb}${status ? `. ${status}` : ''}`}
               >
-                <span class={`${s.cardNum} num`}>{gym ? '' : `${l.unit}.${l.index}`}</span>
+                <span class={`${s.cardNum} num`}>
+                  {gym ? '' : group === 'code' ? l.index : `${l.unit}.${l.index}`}
+                </span>
                 <span class={s.cardTitle}>{l.title}</span>
                 <span class={s.cardKeys}>
                   {keysOf(l).length > 0 && keysOf(l).length <= 6
