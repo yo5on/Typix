@@ -77,3 +77,20 @@ kbd {
 .num {
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * Colour-blind finger palette (Settings → Accessibility). Okabe–Ito colours, which stay distinct for
+ * protanopia, deuteranopia and tritanopia. Four hues, one per finger, the same on both hands: the hand is
+ * already clear from where the key is, and four hues are easier to tell apart than eight.
+ */
+:root[data-palette='cb'] {
+  --finger-l5: #cc79a7;
+  --finger-r5: #cc79a7;
+  --finger-l4: #56b4e9;
+  --finger-r4: #56b4e9;
+  --finger-l3: #e69f00;
+  --finger-r3: #e69f00;
+  --finger-l2: #009e73;
+  --finger-r2: #009e73;
+  --finger-thumb: #8a93a0;
+}

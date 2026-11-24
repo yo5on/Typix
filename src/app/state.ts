@@ -95,3 +95,7 @@ export function openLesson(id: string, focus?: string) {
   pendingLesson.value = { id, focus };
   navigate('learn');
 }
+
+effect(() => {
+  document.documentElement.dataset.palette = settings.value.colorBlindFingers ? 'cb' : 'default';
+});

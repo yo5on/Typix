@@ -71,6 +71,7 @@ const settingChecks: { [K in keyof Settings]: (v: unknown) => boolean } = {
   errorMode: oneOf('stop', 'continue'),
   textSize: oneOf('S', 'M', 'L', 'XL'),
   fingerLabels: bool,
+  colorBlindFingers: bool,
   handTone: oneOf('light', 'medium', 'tan', 'deep', 'ghost'),
   showHands: bool,
   guidanceOverride: oneOf<string | number>('auto', 0, 1, 2, 3),

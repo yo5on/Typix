@@ -91,3 +91,13 @@
   font-size: calc(var(--unit) * 0.17);
   color: var(--text-3);
 }
+
+/* Colour-blind palette: the key to press also gets stripes and a thicker border, so it never relies on hue. */
+:global(:root[data-palette='cb']) .lit {
+  border-width: 2px;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--finger) 55%, transparent) 4px 7px
+  );
+}

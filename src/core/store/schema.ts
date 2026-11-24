@@ -56,6 +56,8 @@ export interface Settings {
   errorMode: 'stop' | 'continue';
   textSize: 'S' | 'M' | 'L' | 'XL';
   fingerLabels: boolean;
+  /** Okabe–Ito finger colours and a patterned lit key, for colour-blind players. */
+  colorBlindFingers: boolean;
   handTone: 'light' | 'medium' | 'tan' | 'deep' | 'ghost';
   showHands: boolean;
   guidanceOverride: 'auto' | 0 | 1 | 2 | 3;
@@ -92,6 +94,7 @@ export function defaultSettings(): Settings {
     errorMode: 'stop',
     textSize: 'M',
     fingerLabels: false,
+    colorBlindFingers: false,
     handTone: 'medium',
     showHands: true,
     guidanceOverride: 'auto',

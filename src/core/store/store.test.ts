@@ -75,8 +75,10 @@ describe('validation', () => {
       layout: 'dvorak',
       evil: true,
       onboarded: true,
+      colorBlindFingers: true,
     });
     expect(s.onboarded).toBe(true);
+    expect(s.colorBlindFingers).toBe(true);
     expect(sanitizeSettings({ onboarded: 'yes' }).onboarded).toBe(false);
     expect(s.sfx).toBe(0.3);
     expect(s.shake).toBe(defaultSettings().shake);

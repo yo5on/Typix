@@ -17,7 +17,7 @@ All three modes share one typing engine and one progress store. Progress stays i
 Each item stays open until someone checks it by hand. Passing unit tests don't close it.
 
 - **Browser compatibility:** typing shortcuts (`'`, `/`, Backspace, Tab, Space) must not trigger browser actions in Chrome, Firefox, Edge or Safari. The keyboard and hands still need a cross-browser rendering check.
-- **Accessibility:** a keyboard-only run through Learning; a screen-reader pass on menus, settings, summaries and stats; a reduced-motion check; Lighthouse accessibility ≥ 95.
+- **Accessibility:** a check of the colour-blind finger palette with a simulator or colour-blind players; a keyboard-only run through Learning; a screen-reader pass on menus, settings, summaries and stats; a reduced-motion check; Lighthouse accessibility ≥ 95.
 - **Hand poses:** visual sign-off of every key pose against reference photos, 60 fps on a mid-range laptop, and static poses under reduced motion.
 - **Curriculum:** a hand-typed pass through Units 6–8 (punctuation, numbers, symbols) to judge the generated text, multi-line code snippets (the code tracks are one line per prompt until the engine has an Enter key), the onboarding keyboard check (PLAN §4.1 step 3), tuning the placement pass mark, and a Playwright e2e from first launch to the end of Unit 1.
 - **Fight-dependent stats:** the pressure split, fight record and the Fight rows of the recommendation rules (PLAN §4.5) wait for Fight mode.

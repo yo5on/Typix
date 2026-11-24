@@ -14,7 +14,7 @@ type Category = (typeof categories)[number];
 /** Which settings each category's "Reset to defaults" restores. */
 const categoryKeys: Record<Exclude<Category, 'Data'>, (keyof Settings)[]> = {
   General: ['textSize', 'layout'],
-  Accessibility: ['reducedMotion', 'shake', 'flash', 'fingerLabels'],
+  Accessibility: ['reducedMotion', 'shake', 'flash', 'fingerLabels', 'colorBlindFingers'],
   Audio: ['sfx', 'music', 'ticks'],
   Learning: ['errorMode', 'showHands', 'handTone', 'guidanceOverride'],
   Fight: ['guardWindowBoost'],
@@ -122,6 +122,17 @@ export function SettingsScreen() {
                   id="fingerLabels"
                   checked={v.fingerLabels}
                   onChange={(fingerLabels) => updateSettings({ fingerLabels })}
+                />
+              </Field>
+              <Field
+                id="colorBlindFingers"
+                label="Colour-blind finger colours"
+                hint="Four colours that stay distinct with red-green and blue-yellow colour blindness (one per finger, the same on both hands), and a striped pattern on the key to press."
+              >
+                <Toggle
+                  id="colorBlindFingers"
+                  checked={v.colorBlindFingers}
+                  onChange={(colorBlindFingers) => updateSettings({ colorBlindFingers })}
                 />
               </Field>
             </Group>
