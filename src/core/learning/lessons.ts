@@ -1,0 +1,170 @@
+import { pickWords } from '../textgen/generate';
+
+/** One screen of a lesson. */
+export type StepSpec =
+  /** Read a short explanation; Space continues. */
+  | { kind: 'intro'; title: string; body: string[] }
+  /** Press each character in turn, one at a time (safe on keyboards that drop simultaneous keys). */
+  | { kind: 'find'; title: string; keys: string }
+  /** Watch the hands press each key; Enter replays, Space continues. */
+  | { kind: 'demo'; keys: string }
+  /** Type generated (or fixed) text. */
+  | DrillSpec;
+
+export interface DrillSpec {
+  kind: 'drill';
+  style: 'single' | 'pairs' | 'words' | 'review' | 'sentences' | 'fixed';
+  /** Fixed text, for `style: 'fixed'`. */
+  text?: string;
+  /** Only words containing one of these strings (e.g. common letter pairs). */
+  contains?: string[];
+  /** Share of words given a capital first letter (when the capital is allowed). */
+  capitalize?: number;
+  /** How many words, tokens or sentences. Defaults depend on the style. */
+  count?: number;
+}
+
+export interface Lesson {
+  /** 'u1.l2', or 'gym.l2' for Finger Gym drills. */
+  id: string;
+  group: 'course' | 'gym';
+  unit: number;
+  /** Position inside the unit, from 1. */
+  index: number;
+  title: string;
+  blurb: string;
+  /** Characters this lesson introduces (shown in demos and judged in the summary). */
+  newKeys: string;
+  /** Every character that may appear in the lesson's text, apart from space. */
+  allowed: string;
+  /** Characters to favour in generated text. Defaults to `newKeys`. */
+  focus?: string;
+  steps: StepSpec[];
+  /** Unit 0 is orientation only: nothing is scored or recorded. */
+  scored: boolean;
+}
+
+export interface Unit {
+  id: number;
+  title: string;
+  blurb: string;
+  lessons: Lesson[];
+}
+
+export interface TextContext {
+  rng: () => number;
+  /** Real words to draw from (filtered to the lesson's keys here). */
+  words: readonly string[];
+  /** Characters to favour instead of the lesson's own focus (e.g. "repeat with focus on U"). */
+  focus?: string;
+}
+
+/** Below this many real words, drills use short letter patterns built from the allowed letters instead. */
+const MIN_REAL_WORDS = 6;
+
+const pick = <T>(xs: readonly T[], rng: () => number): T => xs[Math.floor(rng() * xs.length)]!;
+const isLetter = (c: string) => /^[a-z]$/.test(c);
+
+/** "1.2 · D and K", or "Finger Gym · Left index finger". */
+export const lessonLabel = (l: Lesson) =>
+  l.group === 'gym' ? `Finger Gym · ${l.title}` : `${l.unit}.${l.index} · ${l.title}`;
+
+/** The characters a lesson focuses on, for text generation and the summary. */
+export function lessonFocus(lesson: Lesson, override?: string): string {
+  const f = override || lesson.focus || lesson.newKeys;
+  return f || lesson.allowed;
+}
+
+/** Keys-only patterns such as "fjf", each containing at least one focus key. */
+function tokens(pool: string[], focus: string[], count: number, min: number, max: number, rng: () => number) {
+  const out: string[] = [];
+  while (out.length < count) {
+    const len = min + Math.floor(rng() * (max - min + 1));
+    const chars = Array.from({ length: len }, () => pick(pool, rng));
+    if (!chars.some((c) => focus.includes(c))) chars[Math.floor(rng() * len)] = pick(focus, rng);
+    const t = chars.join('');
+    if (t !== out.at(-1)) out.push(t);
+  }
+  return out;
+}
+
+function wordPool(spec: DrillSpec, lesson: Lesson, ctx: TextContext): string[] {
+  const allowed = new Set(lesson.allowed.toLowerCase());
+  let pool = ctx.words.filter((w) => [...w].every((c) => allowed.has(c)));
+  if (spec.contains) pool = pool.filter((w) => spec.contains!.some((s) => w.includes(s)));
+  return [...new Set(pool)];
+}
+
+function words(spec: DrillSpec, lesson: Lesson, ctx: TextContext, count: number): string[] {
+  const focus = [...lessonFocus(lesson, ctx.focus).toLowerCase()].filter(isLetter);
+  const letters = [...new Set(lesson.allowed.toLowerCase())].filter(isLetter);
+  const pool = wordPool(spec, lesson, ctx);
+  const focusSet = new Set(focus);
+  let out: string[];
+  if (pool.length >= MIN_REAL_WORDS) {
+    out = pickWords(pool, count, { rng: ctx.rng, focus: focusSet, focusShare: 0.7 });
+  } else {
+    // Not enough real words yet (e.g. F and J only): short letter patterns, plus any real words we have.
+    const fake = tokens(letters, focus.length ? focus : letters, count, 2, 4, ctx.rng);
+    out = fake.map((t) => (pool.length && ctx.rng() < 0.3 ? pick(pool, ctx.rng) : t));
+  }
+  const share = spec.capitalize ?? 0;
+  if (share > 0) {
+    out = out.map((w) => {
+      const cap = w[0]!.toUpperCase() + w.slice(1);
+      return lesson.allowed.includes(cap[0]!) && ctx.rng() < share ? cap : w;
+    });
+  }
+  return out;
+}
+
+function sentences(lesson: Lesson, ctx: TextContext, count: number, spec: DrillSpec): string {
+  const out: string[] = [];
+  const comma = lesson.allowed.includes(',');
+  const period = lesson.allowed.includes('.');
+  for (let i = 0; i < count; i++) {
+    const n = 4 + Math.floor(ctx.rng() * 4);
+    const ws = words({ ...spec, capitalize: 0 }, lesson, ctx, n);
+    const first = ws[0]!.toUpperCase()[0]!;
+    if (lesson.allowed.includes(first)) ws[0] = first + ws[0]!.slice(1);
+    if (comma && n >= 6) ws[2] += ',';
+    out.push(ws.join(' ') + (period ? '.' : ''));
+  }
+  return out.join(' ');
+}
+
+/**
+ * Builds the text for one drill. Every character is guaranteed to be in `lesson.allowed` or a space
+ * (checked across every lesson and many seeds in the tests).
+ */
+export function drillText(spec: DrillSpec, lesson: Lesson, ctx: TextContext): string {
+  const { rng } = ctx;
+  const focus = [...lessonFocus(lesson, ctx.focus)].filter((c) => lesson.allowed.includes(c));
+  const all = [...new Set(lesson.allowed)];
+  switch (spec.style) {
+    case 'fixed':
+      return spec.text ?? '';
+    case 'single': {
+      // "fff jjj fff jjj" then mixed: each key on its own first, then alternating.
+      const groups: string[] = [];
+      const keys = focus.length ? focus : all;
+      for (let round = 0; round < 2; round++) for (const k of keys) groups.push(k.repeat(3));
+      const pairsWith = keys.length > 1 ? keys : [...new Set([...keys, ...all])].slice(0, 4);
+      groups.push(...tokens(pairsWith, keys, spec.count ?? 6, 1, 2, rng));
+      // Capitals are practised next to their lower-case letter: "Ff Jj".
+      return groups.map((g) => (/^[A-Z]+$/.test(g) ? g[0] + g[0]!.toLowerCase() : g)).join(' ');
+    }
+    case 'pairs': {
+      const keys = focus.length ? focus : all;
+      // New keys twice as likely as the home-row anchors around them, so patterns stay about the new keys.
+      const anchors = [...'asdfjkl;'].filter((c) => lesson.allowed.includes(c) && !keys.includes(c));
+      return tokens([...keys, ...keys, ...anchors], keys, spec.count ?? 12, 2, 3, rng).join(' ');
+    }
+    case 'words':
+      return words(spec, lesson, ctx, spec.count ?? 12).join(' ');
+    case 'review':
+      return words(spec, lesson, ctx, spec.count ?? 16).join(' ');
+    case 'sentences':
+      return sentences(lesson, ctx, spec.count ?? 3, spec);
+  }
+}

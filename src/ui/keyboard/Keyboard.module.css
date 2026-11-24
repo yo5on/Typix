@@ -66,3 +66,28 @@
   border-radius: 1px;
   background: var(--text-3);
 }
+
+/* Learning: the key to press next, in its finger's colour (the one soft glow on the screen). */
+.lit {
+  background: color-mix(in srgb, var(--finger) 32%, var(--bg-2));
+  border-color: var(--finger);
+  box-shadow:
+    inset 0 -2px 0 var(--finger),
+    0 0 16px color-mix(in srgb, var(--finger) 45%, transparent);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.dim {
+  opacity: 0.35;
+}
+
+.finger {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-family: var(--font-ui);
+  font-size: calc(var(--unit) * 0.17);
+  color: var(--text-3);
+}

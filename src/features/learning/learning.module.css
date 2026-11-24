@@ -1,0 +1,480 @@
+/* ---------- Shared ---------- */
+.eyebrow {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  gap: var(--sp-12);
+  flex-wrap: wrap;
+}
+
+.board {
+  position: relative;
+  align-self: center;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-24);
+  margin-top: auto;
+  padding-top: var(--sp-24);
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.warning {
+  padding: var(--sp-12) var(--sp-16);
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+  font-size: var(--fs-14);
+}
+
+/* ---------- Lesson list ---------- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-24);
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.continue {
+  position: relative;
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-24);
+  text-align: left;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: var(--bg-1);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast),
+    background var(--dur-fast);
+}
+.continue:hover,
+.continue:focus-visible {
+  border-color: var(--accent);
+  background: var(--bg-2);
+  border-radius: var(--radius-card);
+}
+.continueTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: 500;
+}
+.continueDetail {
+  font-size: var(--fs-14);
+  color: var(--text-2);
+}
+.continueAction {
+  position: absolute;
+  right: var(--sp-24);
+  bottom: var(--sp-24);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.allDone {
+  padding: var(--sp-24);
+  border-radius: var(--radius-card);
+  background: var(--bg-1);
+  color: var(--text-2);
+}
+
+.progressLine {
+  margin-top: calc(-1 * var(--sp-12));
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.unit {
+  display: grid;
+  gap: var(--sp-12);
+  padding-top: var(--sp-16);
+}
+.unitHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-16);
+  flex-wrap: wrap;
+}
+.unitTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: 500;
+}
+.unitBlurb {
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--sp-8);
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'num title'
+    'keys keys'
+    'status status';
+  align-content: start;
+  column-gap: var(--sp-8);
+  row-gap: var(--sp-8);
+  width: 100%;
+  height: 100%;
+  min-height: 104px;
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--bg-1);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast),
+    background var(--dur-fast);
+}
+.card:hover,
+.card:focus-visible {
+  background: var(--bg-2);
+  border-color: var(--line-strong);
+  border-radius: var(--radius-card);
+}
+.card[data-finger] {
+  box-shadow: inset 3px 0 0 var(--finger);
+}
+.card[data-finger]:focus-visible {
+  box-shadow:
+    inset 3px 0 0 var(--finger),
+    var(--focus-ring);
+}
+.cardNext {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+}
+.cardNum {
+  grid-area: num;
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+.cardTitle {
+  grid-area: title;
+  font-size: var(--fs-14);
+  font-weight: 600;
+}
+.cardKeys {
+  grid-area: keys;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.miniCap {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--text-1);
+}
+.status {
+  grid-area: status;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
+  font-weight: 500;
+}
+.statusDone {
+  color: var(--text-2);
+}
+.statusMastered {
+  color: var(--ok);
+}
+.statusNext {
+  color: var(--accent);
+}
+
+/* ---------- Lesson runner ---------- */
+.runner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+  max-width: 960px;
+  width: 100%;
+  margin: calc(-1 * var(--sp-16)) auto 0;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+}
+.dotDone {
+  background: var(--text-3);
+  border-color: var(--text-3);
+}
+.dotNow {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.progressText {
+  margin-left: var(--sp-8);
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-16);
+}
+
+.intro {
+  display: grid;
+  gap: var(--sp-12);
+  max-width: 640px;
+  margin: 0 auto var(--sp-8);
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.intro > button {
+  justify-self: start;
+  margin-top: var(--sp-8);
+}
+.introTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.prompt {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-12);
+  text-align: center;
+  min-height: 176px;
+  align-content: center;
+}
+.promptTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: 500;
+}
+
+.sequence {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-8);
+}
+
+.cap {
+  min-width: 48px;
+  height: 48px;
+  padding: 0 var(--sp-12);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 3px;
+  background: var(--bg-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-20);
+}
+.capDone {
+  color: var(--text-3);
+  background: var(--bg-1);
+}
+.capNow {
+  border-color: var(--accent);
+  color: var(--text-1);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.capBig {
+  min-width: 88px;
+  height: 88px;
+  font-size: var(--fs-40);
+  border-color: var(--finger, var(--line-strong));
+  box-shadow: inset 0 -3px 0 var(--finger, transparent);
+}
+
+.reach {
+  min-height: 1.5em;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: var(--fs-14);
+  color: var(--text-2);
+}
+
+.drillBar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-16);
+}
+.drillStat {
+  font-size: var(--fs-14);
+  color: var(--text-3);
+}
+.text {
+  padding: var(--sp-8) 0;
+}
+
+/* ---------- Summary ---------- */
+.summary {
+  display: grid;
+  gap: var(--sp-24);
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+.summaryHead {
+  display: grid;
+  gap: var(--sp-4);
+}
+.summaryTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-40);
+  font-weight: 500;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-16);
+  margin: 0;
+}
+.stats > div {
+  padding: var(--sp-16);
+  border-radius: var(--radius-card);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+}
+.stats dt {
+  font-size: var(--fs-12);
+  color: var(--text-3);
+}
+.stats dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-28);
+}
+
+.masteryNote {
+  font-size: var(--fs-14);
+  color: var(--text-2);
+}
+
+.keyBars {
+  display: grid;
+  gap: var(--sp-8);
+}
+.keyBar {
+  display: grid;
+  grid-template-columns: 96px 1fr 48px;
+  align-items: center;
+  gap: var(--sp-12);
+}
+.keyBarLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-14);
+}
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+.bar > .barWeak {
+  /* Also called out in the recommendation text, so not colour alone. */
+  background: var(--warn);
+}
+.keyBarValue {
+  font-size: var(--fs-14);
+  text-align: right;
+  color: var(--text-2);
+}
+
+.recs {
+  display: grid;
+  gap: var(--sp-8);
+}
+.recsTitle {
+  font-size: var(--fs-14);
+  color: var(--text-3);
+  font-weight: 500;
+}
+.rec {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-12) var(--sp-16);
+  padding-right: 80px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--bg-1);
+  text-align: left;
+  cursor: pointer;
+}
+.rec:hover,
+.rec:focus-visible {
+  background: var(--bg-2);
+  border-radius: var(--radius-card);
+}
+.rec kbd {
+  position: absolute;
+  right: var(--sp-16);
+  top: 50%;
+  translate: 0 -50%;
+}
+.recPrimary {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+}
+.recLabel {
+  font-weight: 600;
+}
+.recDetail {
+  font-size: var(--fs-14);
+  color: var(--text-2);
+}

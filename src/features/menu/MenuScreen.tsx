@@ -1,6 +1,9 @@
 import { useRef } from 'preact/hooks';
 import { navigate, type Route } from '../../app/router';
 import { progress } from '../../app/state';
+import { LESSONS } from '../../content/curriculum';
+import { lessonLabel } from '../../core/learning/lessons';
+import { nextLesson } from '../../core/learning/results';
 import { Icon, type IconName } from '../../ui/components/Icon';
 import s from './MenuScreen.module.css';
 
@@ -16,6 +19,7 @@ export function MenuScreen() {
   const listRef = useRef<HTMLUListElement>(null);
   const p = progress.value;
   const lessonsDone = Object.values(p.lessons).filter((l) => l.completed).length;
+  const next = nextLesson(p, LESSONS);
 
   // ↑/↓ move between menu entries (Tab still works too).
   function onKeyDown(e: KeyboardEvent) {
@@ -36,8 +40,10 @@ export function MenuScreen() {
       <div class={s.content}>
         <button type="button" class={s.continue} onClick={() => navigate('learn')} data-autofocus>
           <span class={s.continueEyebrow}>{lessonsDone === 0 ? 'Start here' : 'Continue'}</span>
-          <span class={s.continueTitle}>Unit 0 · Orientation</span>
-          <span class={s.continueDetail}>Posture, the F and J bumps, and the home position</span>
+          <span class={s.continueTitle}>{next ? lessonLabel(next) : 'Finger Gym'}</span>
+          <span class={s.continueDetail}>
+            {next ? next.blurb : 'Course complete. Keep every finger sharp with short drills.'}
+          </span>
           <span class={s.continueAction}>
             Enter <Icon name="chevron" size={16} />
           </span>

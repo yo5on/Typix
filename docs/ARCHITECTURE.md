@@ -17,7 +17,7 @@ src/
 ├─ content/          data: word lists (later lessons, fighters, arenas)
 ├─ ui/               design system: tokens, base styles, motion, shared components
 │  ├─ typing/        typing-key capture hook and the scrolling typed-text view
-│  └─ keyboard/      on-screen keyboard (heatmap now; hands in Phase 2)
+│  └─ keyboard/      on-screen keyboard, heatmap, animated hands
 └─ features/         one folder per screen: menu, settings, practice, (learning, fight, stats…)
 ```
 
@@ -36,12 +36,27 @@ finish  ─► computeMetrics (core/typing)       WPM, raw WPM, accuracy, consis
 - **Time** is `KeyboardEvent.timeStamp` minus time spent paused. A test pauses when the window loses focus, and the key that resumes it is not typed.
 - **Metric definitions** are in `core/typing/metrics.ts` and covered by fixture tests. Gaps over 2 s count as pauses and are left out of rhythm and key-speed numbers.
 - **Stats:** per-key presses, errors and running mean latency, the last 50 results (for mastery), and calm vs pressure splits. The 300 most-typed letter pairs are kept. Daily minutes and WPM are kept forever; only the 300 latest session summaries are kept.
-- **"Your keys"** means the home row plus any letter typed 20+ times at 90%+ recent accuracy. Learning lessons will feed this in Phase 3.
+- **"Your keys"** means the home row plus any letter typed 20+ times at 90%+ recent accuracy. Learning lessons count toward this through the shared per-key stats.
 
 Rules, enforced by `eslint.config.js`:
 
 1. `core/` imports nothing from `preact`, `phaser`, `app/`, `ui/` or `features/`. Its logic can be unit-tested and simulated without a browser.
 2. A feature never imports another feature. Shared code goes in `core/` (logic) or `ui/` (components). Features may read app state from `app/state.ts`.
+
+## Learning Mode
+
+| Where                    | What                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/curriculum/`    | The course as data: Units 0–5 (orientation, home, top and bottom rows, capitals, flow) and the Finger Gym (one drill per finger and per hand). Lesson ids are `u1.l2`, `gym.l2` |
+| `core/learning/lessons`  | Lesson and step types; `drillText` builds each drill from the lesson's allowed keys (real words when there are enough, otherwise short letter patterns)                         |
+| `core/learning/guidance` | Per-key fading guidance, PLAN §5.4: level 3 → 0 as accuracy holds, one level per lesson, help comes back below 90%. Stored in the existing `KeyStat.guidance`                   |
+| `core/learning/results`  | Joins a lesson's steps into **one** session, records it with `recordSession`, updates guidance and `progress.lessons`; mastery; `recommend` (PLAN §4.5); `nextLesson`           |
+| `core/learning/fingers`  | Home key per finger and plain-language reach descriptions                                                                                                                       |
+| `ui/keyboard/handRig.ts` | Top-down hand rig in key units. Poses are derived from the layout (fingertip → key, small wrist shift, neighbours lift a little), so every key has one without pose tables      |
+| `ui/keyboard/Hands.tsx`  | SVG hands over the keyboard. Motion is CSS transform transitions only (home → reach → press → return), so reduced motion gives static poses                                     |
+| `features/learning/`     | Lesson list (nothing locked), step runner (intro, find, demo, drill), summary with recommendations                                                                              |
+
+No schema change: Learning uses the existing `Progress.lessons`, `KeyStat.guidance` and the Learning settings (`showHands`, `handTone`, `guidanceOverride`, `errorMode`, `fingerLabels`). Unit 0 is not scored or recorded.
 
 ## State and persistence
 

@@ -5,19 +5,14 @@ import { MenuScreen } from '../features/menu/MenuScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { ComingSoon } from '../features/placeholder/ComingSoon';
 import { PracticeScreen } from '../features/practice/PracticeScreen';
+import { LearningScreen } from '../features/learning/LearningScreen';
 import { Icon } from '../ui/components/Icon';
 import s from './App.module.css';
 
 const screens: Record<Route, () => preact.JSX.Element> = {
   menu: () => <MenuScreen />,
   settings: () => <SettingsScreen />,
-  learn: () => (
-    <ComingSoon
-      title="Learn Typing"
-      phase={3}
-      text="A guided course with animated hands, from the home row to code."
-    />
-  ),
+  learn: () => <LearningScreen />,
   fight: () => (
     <ComingSoon
       title="Fight"

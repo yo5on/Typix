@@ -12,6 +12,7 @@ const paths = {
   upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
   reset: 'M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4',
   alert: 'M12 3l10 18H2L12 3zM12 10v5M12 18h.01',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
 } as const;
 
 export type IconName = keyof typeof paths;
