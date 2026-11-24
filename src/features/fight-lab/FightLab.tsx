@@ -295,6 +295,7 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
 
   return (
     <Screen
+      fill
       title={dev ? 'Fight Lab' : 'Fight'}
       onBack={() => navigate('menu')}
       aside={dev ? <span class={s.dev}>DEV ONLY</span> : undefined}
