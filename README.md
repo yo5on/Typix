@@ -10,7 +10,7 @@ Typix is a free, browser-based touch-typing trainer in three modes:
 
 All three modes share one typing engine and one progress store. Progress stays in your browser, so there are no accounts and no backend. You can export your progress to a file at any time.
 
-> **Status:** Free Practice and Learning Mode (Units 0–5, Finger Gym, animated hands, fading guidance) and the Stats & Progress dashboard are built and unit-tested. Fight is a prototype on the `feature/fight-lab` branch. See [the plan](docs/PLAN.md) and the open items below.
+> **Status:** Free Practice and Learning Mode (Units 0–8, Finger Gym, animated hands, fading guidance) and the Stats & Progress dashboard are built and unit-tested. Fight is a prototype on the `feature/fight-lab` branch. See [the plan](docs/PLAN.md) and the open items below.
 
 ### Open items (not yet verified)
 
@@ -19,7 +19,7 @@ Each item stays open until someone checks it by hand. Passing unit tests don't c
 - **Browser compatibility:** typing shortcuts (`'`, `/`, Backspace, Tab, Space) must not trigger browser actions in Chrome, Firefox, Edge or Safari. The keyboard and hands still need a cross-browser rendering check.
 - **Accessibility:** a keyboard-only run through Learning; a screen-reader pass on menus, settings, summaries and stats; a reduced-motion check; Lighthouse accessibility ≥ 95.
 - **Hand poses:** visual sign-off of every key pose against reference photos, 60 fps on a mid-range laptop, and static poses under reduced motion.
-- **Curriculum:** Units 6–8 (punctuation, numbers, symbols), the Unit 9 code tracks, onboarding with the keyboard check and placement test, and a Playwright e2e from first launch to the end of Unit 1.
+- **Curriculum:** a hand-typed pass through Units 6–8 (punctuation, numbers, symbols) to judge the generated text, the Unit 9 code tracks, onboarding with the keyboard check and placement test, and a Playwright e2e from first launch to the end of Unit 1.
 - **Fight-dependent stats:** the pressure split, fight record and the Fight rows of the recommendation rules (PLAN §4.5) wait for Fight mode.
 
 ### Parallel development

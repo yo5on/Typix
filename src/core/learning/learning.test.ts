@@ -79,6 +79,19 @@ describe('curriculum', () => {
     expect(text).not.toContain('r');
   });
 
+  it('works every new punctuation, number and symbol key into Units 6–8 word drills', () => {
+    for (const l of LESSONS.filter((l) => l.unit >= 6 && l.unit <= 8 && l.group === 'course')) {
+      const text = drillText({ kind: 'drill', style: 'mixed', count: 200 }, l, {
+        rng: seededRng(5),
+        words: enCommonWords,
+      });
+      for (const c of l.newKeys || l.focus!) expect(text, `${l.id} ${c}`).toContain(c);
+      // Brackets stay paired.
+      for (const [o, c] of ['()', '[]', '{}', '<>'])
+        expect(text.split(o!).length, `${l.id} ${o}${c}`).toBe(text.split(c!).length);
+    }
+  });
+
   it('pairs capitals with their lower-case letter in single-key drills', () => {
     const l = findLesson('u4.l1')!;
     const text = drillText({ kind: 'drill', style: 'single' }, l, {

@@ -45,16 +45,16 @@ Rules, enforced by `eslint.config.js`:
 
 ## Learning Mode
 
-| Where                    | What                                                                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `content/curriculum/`    | The course as data: Units 0–5 (orientation, home, top and bottom rows, capitals, flow) and the Finger Gym (one drill per finger and per hand). Lesson ids are `u1.l2`, `gym.l2` |
-| `core/learning/lessons`  | Lesson and step types; `drillText` builds each drill from the lesson's allowed keys (real words when there are enough, otherwise short letter patterns)                         |
-| `core/learning/guidance` | Per-key fading guidance, PLAN §5.4: level 3 → 0 as accuracy holds, one level per lesson, help comes back below 90%. Stored in the existing `KeyStat.guidance`                   |
-| `core/learning/results`  | Joins a lesson's steps into **one** session, records it with `recordSession`, updates guidance and `progress.lessons`; mastery; `recommend` (PLAN §4.5); `nextLesson`           |
-| `core/learning/fingers`  | Home key per finger and plain-language reach descriptions                                                                                                                       |
-| `ui/keyboard/handRig.ts` | Top-down hand rig in key units. Poses are derived from the layout (fingertip → key, small wrist shift, neighbours lift a little), so every key has one without pose tables      |
-| `ui/keyboard/Hands.tsx`  | SVG hands over the keyboard. Motion is CSS transform transitions only (home → reach → press → return), so reduced motion gives static poses                                     |
-| `features/learning/`     | Lesson list (nothing locked), step runner (intro, find, demo, drill), summary with recommendations                                                                              |
+| Where                    | What                                                                                                                                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/curriculum/`    | The course as data: Units 0–8 (orientation, home, top and bottom rows, capitals, flow, punctuation, numbers, symbols) and the Finger Gym (one drill per finger and per hand). Lesson ids are `u1.l2`, `gym.l2` |
+| `core/learning/lessons`  | Lesson and step types; `drillText` builds each drill from the lesson's allowed keys (real words when there are enough, otherwise short letter patterns)                                                        |
+| `core/learning/guidance` | Per-key fading guidance, PLAN §5.4: level 3 → 0 as accuracy holds, one level per lesson, help comes back below 90%. Stored in the existing `KeyStat.guidance`                                                  |
+| `core/learning/results`  | Joins a lesson's steps into **one** session, records it with `recordSession`, updates guidance and `progress.lessons`; mastery; `recommend` (PLAN §4.5); `nextLesson`                                          |
+| `core/learning/fingers`  | Home key per finger and plain-language reach descriptions                                                                                                                                                      |
+| `ui/keyboard/handRig.ts` | Top-down hand rig in key units. Poses are derived from the layout (fingertip → key, small wrist shift, neighbours lift a little), so every key has one without pose tables                                     |
+| `ui/keyboard/Hands.tsx`  | SVG hands over the keyboard. Motion is CSS transform transitions only (home → reach → press → return), so reduced motion gives static poses                                                                    |
+| `features/learning/`     | Lesson list (nothing locked), step runner (intro, find, demo, drill), summary with recommendations                                                                                                             |
 
 No schema change: Learning uses the existing `Progress.lessons`, `KeyStat.guidance` and the Learning settings (`showHands`, `handTone`, `guidanceOverride`, `errorMode`, `fingerLabels`). Unit 0 is not scored or recorded.
 

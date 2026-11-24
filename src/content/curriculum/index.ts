@@ -31,7 +31,36 @@ const LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const RIGHT_CAPS = 'YUIOPHJKLNM';
 const LEFT_CAPS = 'QWERTASDFGZXCVB';
 
+const ALPHA = HOME + TOP + BOTTOM + RIGHT_CAPS + LEFT_CAPS;
+const PUNCT = `'"?!:-`;
+const DIGITS = '0123456789';
+const WITH_DIGITS = ALPHA + PUNCT + DIGITS;
+
 type Draft = Omit<Lesson, 'id' | 'unit' | 'index'>;
+
+/** Units 6–8: new punctuation, number or symbol keys, then words with those keys worked in. */
+const symbolLesson = (newKeys: string, allowed: string, title: string, blurb: string): Draft => ({
+  ...keyLesson(newKeys, allowed, title, blurb),
+  steps: [
+    { kind: 'demo', keys: newKeys },
+    drill('single'),
+    drill('pairs'),
+    drill('mixed', { count: 14 }),
+    drill('mixed', { count: 18 }),
+  ],
+});
+
+/** The closing lesson of Units 6–8: no new keys, the whole unit's keys in context. */
+const mixedLesson = (focus: string, allowed: string, title: string, blurb: string): Draft => ({
+  group: 'course',
+  title,
+  blurb,
+  newKeys: '',
+  focus,
+  allowed,
+  scored: true,
+  steps: [drill('mixed', { count: 18 }), drill('mixed', { count: 20 })],
+});
 
 function unit(id: number, title: string, blurb: string, lessons: Draft[]): Unit {
   return {
@@ -271,10 +300,65 @@ export const UNITS: Unit[] = [
       blurb,
       newKeys: '',
       focus: LOWER,
-      allowed: HOME + TOP + BOTTOM + RIGHT_CAPS + LEFT_CAPS,
+      allowed: ALPHA,
       scored: true,
       steps,
     })),
+  ]),
+
+  unit(6, 'Punctuation', 'Quotes, question marks, colons and dashes, mostly on the right pinky.', [
+    symbolLesson(
+      `'"`,
+      ALPHA + `'"`,
+      'Apostrophe and quotes',
+      `Right pinky, one key right of ;. Shift gives ".`,
+    ),
+    symbolLesson('?!', ALPHA + `'"?!`, 'Question and exclamation', 'Shift + slash, and Shift + 1.'),
+    symbolLesson(':', ALPHA + `'"?!:`, 'Colon', 'Shift + semicolon, right pinky.'),
+    symbolLesson('-', ALPHA + PUNCT, 'Hyphen and dashes', 'Right pinky reaches up to the number row.'),
+    mixedLesson(PUNCT + ',.', ALPHA + PUNCT, 'Punctuated text', 'Every punctuation mark so far, mixed.'),
+  ]),
+
+  unit(7, 'Numbers', 'The number row, from the middle out. Each finger reaches up from its home key.', [
+    symbolLesson('4567', ALPHA + PUNCT + '4567', '4 5 6 7', 'Index fingers reach up two rows.'),
+    symbolLesson('38', ALPHA + PUNCT + '345678', '3 and 8', 'Middle fingers reach up.'),
+    symbolLesson('29', ALPHA + PUNCT + '23456789', '2 and 9', 'Ring fingers reach up.'),
+    symbolLesson('10', WITH_DIGITS, '1 and 0', 'Pinkies reach up.'),
+    mixedLesson(DIGITS, WITH_DIGITS, 'Numbers in text', 'Prices, dates and counts between words.'),
+  ]),
+
+  unit(8, 'Symbols', 'Brackets, operators and the rest, grouped by the finger that types them.', [
+    symbolLesson(
+      '()',
+      WITH_DIGITS + '()',
+      'Parentheses',
+      'Shift + 9 and Shift + 0: right ring finger and pinky.',
+    ),
+    symbolLesson('[]{}', WITH_DIGITS + '()[]{}', 'Brackets and braces', 'Right pinky, above the quote key.'),
+    symbolLesson(
+      '=+<>',
+      WITH_DIGITS + '()[]{}=+<>',
+      'Equals, plus, less and greater',
+      'Right pinky, then Shift + comma and period.',
+    ),
+    symbolLesson(
+      '_*&',
+      WITH_DIGITS + '()[]{}=+<>_*&',
+      'Underscore, star and ampersand',
+      'Shifted number-row keys on the right hand.',
+    ),
+    symbolLesson(
+      '@#$%^',
+      WITH_DIGITS + '()[]{}=+<>_*&@#$%^',
+      'At, hash, dollar, percent, caret',
+      'Shifted number-row keys on the left hand.',
+    ),
+    symbolLesson(
+      '~`|\\',
+      WITH_DIGITS + '()[]{}=+<>_*&@#$%^~`|\\',
+      'Tilde, backtick, pipe, backslash',
+      'The corner keys, pinkies only.',
+    ),
   ]),
 ];
 

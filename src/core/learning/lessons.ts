@@ -13,7 +13,8 @@ export type StepSpec =
 
 export interface DrillSpec {
   kind: 'drill';
-  style: 'single' | 'pairs' | 'words' | 'review' | 'sentences' | 'fixed';
+  /** 'mixed': real words with the lesson's punctuation, numbers or symbols worked in (Units 6–8). */
+  style: 'single' | 'pairs' | 'words' | 'review' | 'sentences' | 'fixed' | 'mixed';
   /** Fixed text, for `style: 'fixed'`. */
   text?: string;
   /** Only words containing one of these strings (e.g. common letter pairs). */
@@ -133,6 +134,73 @@ function sentences(lesson: Lesson, ctx: TextContext, count: number, spec: DrillS
   return out.join(' ');
 }
 
+const isDigit = (c: string) => c >= '0' && c <= '9';
+
+/** A 1–4 digit number from the allowed digits, containing `must` when it is a digit. */
+function number(digits: string[], must: string, rng: () => number): string {
+  const len = 1 + Math.floor(rng() * 4);
+  const out = Array.from({ length: len }, () => pick(digits, rng));
+  if (isDigit(must)) out[Math.floor(rng() * len)] = must;
+  return out.join('');
+}
+
+/** Brackets and quotes always come in pairs when both halves are allowed. */
+const CLOSERS: Record<string, string> = { '(': ')', '[': ']', '{': '}', '<': '>', '"': '"', "'": "'" };
+const OPENERS: Record<string, string> = { ')': '(', ']': '[', '}': '{', '>': '<' };
+
+/** Works one symbol into a real word the way it usually appears in text or code. */
+function decorate(c: string, w: string, w2: string, allowed: string, rng: () => number): string {
+  const digits = [...allowed].filter(isDigit);
+  const num = () => (digits.length ? number(digits, c, rng) : w2);
+  if (isDigit(c)) return rng() < 0.5 ? num() : `${w} ${num()}`;
+  const open = OPENERS[c] ?? c;
+  const close = CLOSERS[open];
+  if (close && allowed.includes(open) && allowed.includes(close)) {
+    if (open === "'" && allowed.includes('s') && rng() < 0.5) return `${w}'s`;
+    return open + w + close;
+  }
+  switch (c) {
+    case '=':
+      return `${w} = ${w2}`;
+    case '$':
+    case '#':
+    case '@':
+      return c + (c === '$' ? num() : w);
+    case '~':
+      return allowed.includes('/') ? `~/${w}` : c + w;
+    case '%':
+      return num() + c;
+    case '^':
+      return `${w}^${num()}`;
+    case '*':
+    case '`':
+      return c + w + c;
+    case '-':
+    case '_':
+    case '|':
+    case '\\':
+    case '&':
+    case '+':
+    case '/':
+      return w + c + w2;
+    default:
+      // Sentence and clause marks (and anything else) go right after the word.
+      return w + c;
+  }
+}
+
+/** Real words with the lesson's non-letter focus keys worked into most of them. */
+function mixed(spec: DrillSpec, lesson: Lesson, ctx: TextContext): string {
+  const symbols = [...lessonFocus(lesson, ctx.focus)].filter((c) => !isLetter(c) && c !== ' ');
+  const ws = words({ ...spec, capitalize: 0 }, lesson, ctx, spec.count ?? 14);
+  if (!symbols.length) return ws.join(' ');
+  return ws
+    .map((w) =>
+      ctx.rng() < 0.3 ? w : decorate(pick(symbols, ctx.rng), w, pick(ws, ctx.rng), lesson.allowed, ctx.rng),
+    )
+    .join(' ');
+}
+
 /**
  * Builds the text for one drill. Every character is guaranteed to be in `lesson.allowed` or a space
  * (checked across every lesson and many seeds in the tests).
@@ -166,5 +234,7 @@ export function drillText(spec: DrillSpec, lesson: Lesson, ctx: TextContext): st
       return words(spec, lesson, ctx, spec.count ?? 16).join(' ');
     case 'sentences':
       return sentences(lesson, ctx, spec.count ?? 3, spec);
+    case 'mixed':
+      return mixed(spec, lesson, ctx);
   }
 }
