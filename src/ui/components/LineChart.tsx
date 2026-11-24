@@ -1,7 +1,18 @@
 import s from './LineChart.module.css';
 
 /** Minimal single-series line chart (SVG). The data summary goes in `label` for screen readers. */
-export function LineChart({ values, label, unit }: { values: number[]; label: string; unit: string }) {
+export function LineChart({
+  values,
+  label,
+  unit,
+  caption = `${values.length}s`,
+}: {
+  values: number[];
+  label: string;
+  unit: string;
+  /** Right-hand label under the chart; defaults to the length in seconds. */
+  caption?: string;
+}) {
   const W = 600;
   const H = 120;
   const max = Math.max(1, ...values);
@@ -18,7 +29,7 @@ export function LineChart({ values, label, unit }: { values: number[]; label: st
         <span class="num">
           peak {Math.round(max)} {unit}
         </span>
-        <span class="num">{values.length}s</span>
+        <span class="num">{caption}</span>
       </div>
     </figure>
   );

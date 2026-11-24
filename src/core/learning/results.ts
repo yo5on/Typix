@@ -151,6 +151,65 @@ export type Recommendation =
 const legend = (c: string) => (c === ' ' ? 'Space' : c.toUpperCase());
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+/** The weakest of `codes` below 90% over its last 20+ presses (any mode) → its finger's gym drill. */
+function weakKeyGym(
+  codes: Iterable<string | undefined>,
+  progress: Progress,
+  lessons: readonly Lesson[],
+  layout: LayoutIndex,
+): (Recommendation & { lessonId: string }) | null {
+  const weakest = [...new Set(codes)]
+    .filter((code): code is string => !!code && code !== 'Space')
+    .map((code) => ({ code, k: progress.keys[code] }))
+    .filter(({ k }) => k && k.recent.length >= 20 && mean(k.recent) < WEAK_ACCURACY)
+    .sort((a, b) => mean(a.k!.recent) - mean(b.k!.recent))[0];
+  const key = weakest && layout.byCode.get(weakest.code);
+  const gym = key && lessons.find((l) => l.id === `gym.${key.finger.toLowerCase()}`);
+  return gym
+    ? {
+        kind: 'gym',
+        lessonId: gym.id,
+        label: lessonLabel(gym),
+        detail: `${legend(key.base ?? '')} is below 90% over its last presses. This drill trains your ${fingerName(key.finger)}.`,
+      }
+    : null;
+}
+
+/**
+ * The Stats screen's list (PLAN §4.5, the rows that don't need Fight): a 3+ day break → warm-up,
+ * any weak key → its finger's gym, then the next course lesson.
+ */
+export function overviewRecommendations(
+  progress: Progress,
+  lessons: readonly Lesson[],
+  layout: LayoutIndex,
+  daysAway: number | null,
+): Recommendation[] {
+  const recs: Recommendation[] = [];
+  if (daysAway !== null && daysAway >= 3) {
+    // u1.l6 is "Home-row words", the whole home row in real words.
+    const home = lessons.find((l) => l.id === 'u1.l6') ?? lessons.find((l) => l.group === 'course');
+    if (home)
+      recs.push({
+        kind: 'gym',
+        lessonId: home.id,
+        label: 'Warm-up: home-row review',
+        detail: 'A couple of easy minutes to get your fingers settled again.',
+      });
+  }
+  const gym = weakKeyGym(Object.keys(progress.keys), progress, lessons, layout);
+  if (gym) recs.push(gym);
+  const next = nextLesson(progress, lessons);
+  if (next)
+    recs.push({
+      kind: 'next',
+      lessonId: next.id,
+      label: `Continue to ${lessonLabel(next)}`,
+      detail: next.blurb,
+    });
+  return recs;
+}
+
 /** What to do after a lesson, best first (PLAN §4.5). Simple rules, no hidden scoring. */
 export function recommend(
   lesson: Lesson,
@@ -171,22 +230,9 @@ export function recommend(
   };
 
   // A key in this lesson that is weak over its last 50 presses, in any mode → that finger's gym drill.
-  const weakCodes = [...new Set([...lesson.allowed].map((c) => layout.byChar.get(c)?.code))]
-    .filter((code): code is string => !!code && code !== 'Space')
-    .map((code) => ({ code, k: progress.keys[code] }))
-    .filter(({ k }) => k && k.recent.length >= 20 && mean(k.recent) < WEAK_ACCURACY)
-    .sort((a, b) => mean(a.k!.recent) - mean(b.k!.recent));
-  const weakKey = weakCodes[0] && layout.byCode.get(weakCodes[0].code);
-  const gymLesson = weakKey && lessons.find((l) => l.id === `gym.${weakKey.finger.toLowerCase()}`);
-  const gym: Recommendation | null =
-    gymLesson && gymLesson !== lesson
-      ? {
-          kind: 'gym',
-          lessonId: gymLesson.id,
-          label: lessonLabel(gymLesson),
-          detail: `${legend(weakKey.base ?? '')} is below 90% over its last presses. This drill trains your ${fingerName(weakKey.finger)}.`,
-        }
-      : null;
+  const lessonCodes = [...lesson.allowed].map((c) => layout.byChar.get(c)?.code);
+  const weak = weakKeyGym(lessonCodes, progress, lessons, layout);
+  const gym = weak && weak.lessonId !== lesson.id ? weak : null;
 
   if (!outcome) {
     if (next) recs.push(next);

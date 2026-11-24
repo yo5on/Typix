@@ -6,6 +6,7 @@ import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { ComingSoon } from '../features/placeholder/ComingSoon';
 import { PracticeScreen } from '../features/practice/PracticeScreen';
 import { LearningScreen } from '../features/learning/LearningScreen';
+import { StatsScreen } from '../features/stats/StatsScreen';
 import { Icon } from '../ui/components/Icon';
 import s from './App.module.css';
 
@@ -21,9 +22,7 @@ const screens: Record<Route, () => preact.JSX.Element> = {
     />
   ),
   practice: () => <PracticeScreen />,
-  stats: () => (
-    <ComingSoon title="Stats & Progress" phase={4} text="Key mastery, calm vs pressure speed and records." />
-  ),
+  stats: () => <StatsScreen />,
 };
 
 export function App() {
