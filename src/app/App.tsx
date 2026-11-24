@@ -1,4 +1,4 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { navigate, route, type Route } from './router';
 import { storageNotice } from './state';
 import { MenuScreen } from '../features/menu/MenuScreen';
@@ -22,6 +22,7 @@ const screens: Record<Route, () => preact.JSX.Element> = {
     />
   ),
   practice: () => <PracticeScreen />,
+  'fight-lab': () => (import.meta.env.DEV ? <FightLabLoader /> : <MenuScreen />),
   stats: () => <StatsScreen />,
 };
 
@@ -39,7 +40,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.dataset.mode = current === 'fight' ? 'fight' : 'calm';
+    document.documentElement.dataset.mode = current === 'fight' || current === 'fight-lab' ? 'fight' : 'calm';
     // Move focus into the new screen so keyboard users start at the top of it.
     document.querySelector<HTMLElement>('[data-autofocus]')?.focus();
   }, [current]);
@@ -61,4 +62,13 @@ export function App() {
       </div>
     </>
   );
+}
+
+/** Dev-only: loaded on demand, so production builds don't contain the fight lab at all. */
+function FightLabLoader() {
+  const [Lab, setLab] = useState<(() => preact.JSX.Element) | null>(null);
+  useEffect(() => {
+    void import('../features/fight-lab/FightLab').then((m) => setLab(() => m.FightLab));
+  }, []);
+  return Lab ? <Lab /> : null;
 }

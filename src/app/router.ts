@@ -1,10 +1,12 @@
 import { signal } from '@preact/signals';
 
-export const ROUTES = ['menu', 'learn', 'fight', 'practice', 'stats', 'settings'] as const;
+/** 'fight-lab' is a development-only test bench: it resolves to the menu in production builds. */
+export const ROUTES = ['menu', 'learn', 'fight', 'practice', 'stats', 'settings', 'fight-lab'] as const;
 export type Route = (typeof ROUTES)[number];
 
 function parse(hash: string): Route {
   const name = hash.replace(/^#\/?/, '');
+  if (name === 'fight-lab' && !import.meta.env.DEV) return 'menu';
   return (ROUTES as readonly string[]).includes(name) ? (name as Route) : 'menu';
 }
 
