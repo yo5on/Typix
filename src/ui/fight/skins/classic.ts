@@ -106,8 +106,24 @@ export const classicSkin: Skin = {
     ctx.arc(mx, my, mr, 0, Math.PI * 2);
     ctx.fill();
 
-    skyline(ctx, cam, gy, { parallax: 0.15, width: 0.35, min: 0.6, max: 1.9, color: '#2a1a40', seed: 11, lit: false });
-    skyline(ctx, cam, gy, { parallax: 0.4, width: 0.6, min: 0.3, max: 1.3, color: '#150d24', seed: 47, lit: true });
+    skyline(ctx, cam, gy, {
+      parallax: 0.15,
+      width: 0.35,
+      min: 0.6,
+      max: 1.9,
+      color: '#2a1a40',
+      seed: 11,
+      lit: false,
+    });
+    skyline(ctx, cam, gy, {
+      parallax: 0.4,
+      width: 0.6,
+      min: 0.3,
+      max: 1.3,
+      color: '#150d24',
+      seed: 47,
+      lit: true,
+    });
 
     // Haze where the city meets the floor.
     const haze = ctx.createLinearGradient(0, gy - 0.5 * s, 0, gy);
@@ -157,7 +173,14 @@ export const classicSkin: Skin = {
     ctx.lineTo(w, gy);
     ctx.stroke();
 
-    const vignette = ctx.createRadialGradient(w / 2, h * 0.55, h * 0.4, w / 2, h * 0.55, Math.max(w, h) * 0.8);
+    const vignette = ctx.createRadialGradient(
+      w / 2,
+      h * 0.55,
+      h * 0.4,
+      w / 2,
+      h * 0.55,
+      Math.max(w, h) * 0.8,
+    );
     vignette.addColorStop(0, 'rgb(0 0 0 / 0)');
     vignette.addColorStop(1, 'rgb(0 0 0 / 0.55)');
     ctx.fillStyle = vignette;
@@ -241,7 +264,12 @@ export const classicSkin: Skin = {
     ctx.moveTo(head.x - r * 0.98, bandY);
     ctx.lineTo(head.x + r * 0.98, bandY);
     ctx.moveTo(head.x + back * r * 0.9, bandY);
-    ctx.quadraticCurveTo(head.x + back * r * 1.6, bandY + wave, head.x + back * r * 2.2, bandY + r * 0.4 + wave);
+    ctx.quadraticCurveTo(
+      head.x + back * r * 1.6,
+      bandY + wave,
+      head.x + back * r * 2.2,
+      bandY + r * 0.4 + wave,
+    );
     ctx.stroke();
     // Eye, looking toward the opponent.
     ctx.fillStyle = OUTLINE;

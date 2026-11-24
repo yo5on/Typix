@@ -8,8 +8,30 @@ describe('gauntlet', () => {
     const at = { x: 0, y: 1 };
     expect(
       pointsFor([
-        { kind: 'hit', attacker: 0, move: 'jab', zone: 'head', at, damage: 8, heavy: false, dir: 1, combo: 1, counter: false },
-        { kind: 'hit', attacker: 1, move: 'jab', zone: 'head', at, damage: 9, heavy: false, dir: -1, combo: 1, counter: false },
+        {
+          kind: 'hit',
+          attacker: 0,
+          move: 'jab',
+          zone: 'head',
+          at,
+          damage: 8,
+          heavy: false,
+          dir: 1,
+          combo: 1,
+          counter: false,
+        },
+        {
+          kind: 'hit',
+          attacker: 1,
+          move: 'jab',
+          zone: 'head',
+          at,
+          damage: 9,
+          heavy: false,
+          dir: -1,
+          combo: 1,
+          counter: false,
+        },
         { kind: 'block', fighter: 1, at, damage: 2, dir: 1 },
         { kind: 'ko', fighter: 1 },
         { kind: 'ko', fighter: 0 },

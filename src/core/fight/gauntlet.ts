@@ -15,9 +15,10 @@ export type Weapon = 'stick' | 'sword';
 /** Stronger enemies come armed: a staff from tier 2, a sword from tier 4. */
 export const weaponFor = (tier: number): Weapon | null => (tier >= 4 ? 'sword' : tier >= 2 ? 'stick' : null);
 /** Extra hitting power a weapon gives. */
-export const weaponPower = (tier: number) => ({ sword: 1.25, stick: 1.12, none: 1 })[weaponFor(tier) ?? 'none'];
+export const weaponPower = (tier: number) =>
+  ({ sword: 1.25, stick: 1.12, none: 1 })[weaponFor(tier) ?? 'none'];
 
-export const tierFor =(score: number) => Math.floor(score / POINTS_PER_TIER);
+export const tierFor = (score: number) => Math.floor(score / POINTS_PER_TIER);
 export const enemyHp = (tier: number) => MAX_HP + 15 * Math.min(tier, 10);
 
 /** Points the player (fighter 0) earns from one tick's events. */

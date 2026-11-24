@@ -158,8 +158,7 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
       const m = match.current;
       m.opts = { aiOn, level, pace };
       m.ai = makeAi(m.opts, Date.now() >>> 0, m.tier);
-    }
-    else rematch();
+    } else rematch();
   }, [aiOn, level, pace]);
 
   useEffect(() => {
