@@ -19,7 +19,7 @@
   font-weight: 600;
   font-size: var(--fs-16);
   letter-spacing: 0.28em;
-  color: var(--text-1);
+  color: var(--accent);
 }
 
 .content {
@@ -64,8 +64,9 @@
 .continueTitle {
   font-family: var(--font-display);
   font-size: var(--fs-28);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .continueDetail {
   font-size: var(--fs-14);
@@ -139,8 +140,11 @@
   color: var(--accent);
 }
 .itemLabel {
+  font-family: var(--font-display);
   font-size: var(--fs-16);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .itemDetail {
   font-size: var(--fs-14);

@@ -20,9 +20,10 @@
   --accent-calm-soft: rgb(92 200 184 / 14%);
   --accent-fight: #ff8a3d;
   --accent-fight-soft: rgb(255 138 61 / 14%);
-  --accent: var(--accent-calm);
-  --accent-soft: var(--accent-calm-soft);
-  --on-accent: #06110f;
+  /* The fight (orange arcade) look is the site-wide default. */
+  --accent: var(--accent-fight);
+  --accent-soft: var(--accent-fight-soft);
+  --on-accent: #1a0c02;
 
   --ok: #7cc495;
   --err: #e5776f;
