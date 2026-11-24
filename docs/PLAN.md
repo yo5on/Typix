@@ -1,4 +1,4 @@
-# Homerow: Final Plan (v1, for approval)
+# Typix: Final Plan (v1, for approval)
 
 > Status: **draft for approval. No code has been written.**
 > Builds on the design agreed in the previous session: separate Learning, Free Practice and Fight modes on **one shared typing engine and one shared progress store**. Your latest decisions (audience, layout, art, storage, stack) are applied throughout.
@@ -10,13 +10,9 @@
 
 ### 1.1 Name
 
-**Working title: Homerow**. Learning begins on the home row, and the home row is where your hands come back to between moves. The tagline is *"Learn to type. Then fight with it."*
+**Name: Typix** (chosen). Short, sharp and easy to say, and it reads as "typing" without sounding like a school product. The tagline is *"Learn to type. Then fight with it."*
 
-| Candidate | Why it works | Risk |
-|---|---|---|
-| **Homerow** (recommended) | Short, adult, explains itself to anyone who types | Generic word; availability unchecked |
-| Keybound | Sounds like a fighting game | Availability unchecked |
-| Tenfold | Ten fingers; also means "much better" | Availability unchecked |
+Availability of domains, trademarks and app-store names is unchecked; check before the public release.
 
 I have not checked domains, trademarks or app-store names for any of these. Do that before the public release; renaming before then costs little.
 
@@ -157,13 +153,13 @@ Sound (master, SFX, music, keystroke ticks), reduced motion (follows the system 
 
 ## 3. Screen layouts and UI wireframes
 
-All layouts are designed at 1440×900 and must scale cleanly from 1280×720 to 2560×1440. Below 1024 px wide the app shows a polite "Homerow needs a physical keyboard and a wider screen" screen. Free Practice remains usable on tablets that have a keyboard attached.
+All layouts are designed at 1440×900 and must scale cleanly from 1280×720 to 2560×1440. Below 1024 px wide the app shows a polite "Typix needs a physical keyboard and a wider screen" screen. Free Practice remains usable on tablets that have a keyboard attached.
 
 ### 3.1 Main menu
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ HOMEROW                                              ⚙  Settings     │
+│ TYPIX                                              ⚙  Settings     │
 │                                                                      │
 │  ┌──────────────────────────────────────────────┐                    │
 │  │ CONTINUE                                      │   Today            │
@@ -316,7 +312,7 @@ A two-column page: category list on the left (General, Accessibility, Audio, Lea
 
 ### 4.1 First launch (about 90 s, skippable at every step)
 
-1. **Title card**: "Homerow" fades in. Press any key.
+1. **Title card**: "Typix" fades in. Press any key.
 2. **"How do you type today?"** Three options:
    - *I'm new to touch typing* → Learning Unit 0
    - *I can type, place me* → 2-minute placement test → marks the units you already know as completed. You can still open and replay them.
@@ -540,7 +536,7 @@ Deliberately left out: a router (a ~40-line hash router written in-house), a CSS
 ### 7.3 Folder structure
 
 ```
-homerow/
+typix/
 ├─ README.md
 ├─ docs/
 │  ├─ PLAN.md              (this file)
@@ -689,7 +685,7 @@ interface Settings { reducedMotion: 'system'|'on'|'off'; shake: number; flash: n
 ```
 
 **Persistence:**
-- localStorage, key `homerow.progress` and `homerow.settings`, written with a debounce (1 s) and on `pagehide`. Writes are wrapped in try/catch; if the quota is full, older sessions are rolled into daily totals and the write is retried. If it still fails, a non-blocking banner suggests exporting.
+- localStorage, key `typix.progress` and `typix.settings`, written with a debounce (1 s) and on `pagehide`. Writes are wrapped in try/catch; if the quota is full, older sessions are rolled into daily totals and the write is retried. If it still fails, a non-blocking banner suggests exporting.
 - Expected size is under 300 KB because only aggregates are stored, never raw keystrokes. If history ever outgrows localStorage, `persist.ts` is the single place to switch to IndexedDB.
 - `schemaVersion` plus ordered migration functions, each tested on fixture saves from every earlier version.
 - Import validates the file against the schema (it is untrusted input), then shows a preview ("38 lessons, 120 sessions — replace current progress?"), and saves a backup before overwriting.
@@ -797,7 +793,7 @@ PWA offline, accessibility audit, performance pass, cross-browser testing, docs,
 |---|---|
 | **The game can't see which finger you used** | Teach and nudge rather than verify. Coach from indirect signals: hesitation, slow letter pairs, uneven rhythm. Never claim "wrong finger". Webcam tracking stays a later, optional feature |
 | **Visually accurate hands** | Data-driven SVG rig, IK first draft plus hand-tuned pose for each key, reference photos, and a dev-only pose editor. This is the hardest art-and-code piece in Learning, so it gets its own phase (2) |
-| **Non-US layouts and dead keys** (US-International turns `'` and `"` into dead keys) | Onboarding keyboard check. Where available, the Keyboard Map API detects the layout (Chromium only, so this is to verify per browser). Show a clear message: "Homerow currently supports US QWERTY; your keyboard may produce different characters" |
+| **Non-US layouts and dead keys** (US-International turns `'` and `"` into dead keys) | Onboarding keyboard check. Where available, the Keyboard Map API detects the layout (Chromium only, so this is to verify per browser). Show a clear message: "Typix currently supports US QWERTY; your keyboard may produce different characters" |
 | **Browser shortcuts** (Firefox quick find on `'` and `/`, Space scrolling, Backspace, Tab) | `preventDefault` for those keys only on typing surfaces; Ctrl/Cmd shortcuts are never blocked |
 | **Simultaneous-key ghosting** | Never require more than 2 keys at once; Shift plus one key is the maximum |
 | **Input timing accuracy** | `performance.now()` timestamps at the event; metrics never depend on frame rate; key auto-repeat ignored (`event.repeat`) |
@@ -832,10 +828,10 @@ Target: ≥ 90% line coverage in `core/`. No coverage target for the UI; the e2e
 
 ---
 
-## 13. What would make Homerow stand out
+## 13. What would make Typix stand out
 
 1. **Fight from day one with "Your keys".** Fights use only keys you've learned, so a beginner can play after 10 minutes. No other typing game I know of links its course to its combat this way.
-2. **Hands that move like hands.** Most tutors highlight a key. Homerow shows the finger travel home → key → home for every key, then fades that help one key at a time as you master it.
+2. **Hands that move like hands.** Most tutors highlight a key. Typix shows the finger travel home → key → home for every key, then fades that help one key at a time as you master it.
 3. **Calm vs pressure numbers.** It tracks how your typing holds up under stress, which is a real skill no common typing site measures.
 4. **The Nemesis.** A boss rebuilt every day from your own weakest keys and letter pairs. Adaptive practice disguised as a rivalry.
 5. **A real programmer track.** Symbol-heavy drills and real code snippets in several languages, auto-indent handled like an editor, and a code boss that "fails the build".
@@ -849,7 +845,7 @@ Target: ≥ 90% line coverage in `core/`. No coverage target for the UI; the e2e
 
 ## Decisions needing your approval
 
-1. **Name:** "Homerow" as the working title, with availability checked before release. Or pick Keybound, Tenfold, or your own.
+1. **Name:** decided: **Typix** (availability still to check before release).
 2. **Hands rendered as vector (SVG) art, not pixel art,** for accuracy. Fighters and arenas stay pixel art. (§9.2)
 3. **Fight has no backspace**, and typos break combos; Learning and Practice allow backspace. (Agreed previously; confirming.)
 4. **MVP = Phases 0–5:** Learning Units 0–2, Free Practice, Stats basics, and one fight (Kai vs Rook) with placeholder art. Webcam tracking is out of MVP and v1.0.

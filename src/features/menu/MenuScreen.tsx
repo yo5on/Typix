@@ -30,7 +30,7 @@ export function MenuScreen() {
   return (
     <div class={s.menu} onKeyDown={onKeyDown}>
       <header class={s.top}>
-        <span class={s.wordmark}>HOMEROW</span>
+        <span class={s.wordmark}>TYPIX</span>
       </header>
 
       <div class={s.content}>

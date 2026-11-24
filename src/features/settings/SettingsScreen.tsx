@@ -76,7 +76,7 @@ export function SettingsScreen() {
               <Field
                 id="layout"
                 label="Keyboard layout"
-                hint="Other layouts are planned. Homerow expects a physical US keyboard for now."
+                hint="Other layouts are planned. Typix expects a physical US keyboard for now."
               >
                 <span class={s.static}>US QWERTY</span>
               </Field>

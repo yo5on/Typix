@@ -14,7 +14,7 @@ export function migrate(raw: unknown, target = SCHEMA_VERSION, steps = migration
     throw new MigrationError('Save has no schema version.');
   }
   if (raw.schemaVersion > target) {
-    throw new MigrationError(`Save is from a newer version (${raw.schemaVersion}) of Homerow.`);
+    throw new MigrationError(`Save is from a newer version (${raw.schemaVersion}) of Typix.`);
   }
   let data = raw;
   for (let v = raw.schemaVersion; v < target; v++) {

@@ -2,7 +2,7 @@ import type { Progress, Settings } from './schema';
 import { migrate, MigrationError } from './migrations';
 import { isObj, isProgress, sanitizeSettings } from './validate';
 
-export const EXPORT_APP_ID = 'homerow';
+export const EXPORT_APP_ID = 'typix';
 /** Imports larger than this are rejected before parsing. */
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 
@@ -18,7 +18,7 @@ export function buildExport(progress: Progress, settings: Settings, now = new Da
 }
 
 export function exportFileName(now = new Date()): string {
-  return `homerow-progress-${now.toISOString().slice(0, 10)}.json`;
+  return `typix-progress-${now.toISOString().slice(0, 10)}.json`;
 }
 
 export interface ImportSummary {
@@ -33,7 +33,7 @@ export type ImportResult =
 
 /** Parses and validates an exported file. Never trusts the file: wrong shapes are rejected, not repaired. */
 export function parseImport(text: string): ImportResult {
-  if (text.length > MAX_IMPORT_BYTES) return { ok: false, error: 'File is too large to be a Homerow save.' };
+  if (text.length > MAX_IMPORT_BYTES) return { ok: false, error: 'File is too large to be a Typix save.' };
   let data: unknown;
   try {
     data = JSON.parse(text);
@@ -41,7 +41,7 @@ export function parseImport(text: string): ImportResult {
     return { ok: false, error: 'File is not valid JSON.' };
   }
   if (!isObj(data) || data.app !== EXPORT_APP_ID) {
-    return { ok: false, error: 'This is not a Homerow progress file.' };
+    return { ok: false, error: 'This is not a Typix progress file.' };
   }
   let progress: unknown;
   try {

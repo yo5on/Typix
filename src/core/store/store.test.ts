@@ -173,11 +173,11 @@ describe('export and import', () => {
   it.each([
     ['not JSON', '{'],
     ['another app', JSON.stringify({ app: 'other', progress: defaultProgress() })],
-    ['missing progress', JSON.stringify({ app: 'homerow' })],
-    ['future version', JSON.stringify({ app: 'homerow', progress: { schemaVersion: 999 } })],
+    ['missing progress', JSON.stringify({ app: 'typix' })],
+    ['future version', JSON.stringify({ app: 'typix', progress: { schemaVersion: 999 } })],
     [
       'damaged progress',
-      JSON.stringify({ app: 'homerow', progress: { ...defaultProgress(), sessions: [{ id: 1 }] } }),
+      JSON.stringify({ app: 'typix', progress: { ...defaultProgress(), sessions: [{ id: 1 }] } }),
     ],
     ['oversized', 'x'.repeat(5 * 1024 * 1024 + 1)],
   ])('rejects %s', (_name, text) => {
@@ -185,7 +185,7 @@ describe('export and import', () => {
   });
 
   it('ignores prototype-pollution keys in imported settings', () => {
-    const text = `{"app":"homerow","progress":${JSON.stringify(defaultProgress())},"settings":{"__proto__":{"polluted":true}}}`;
+    const text = `{"app":"typix","progress":${JSON.stringify(defaultProgress())},"settings":{"__proto__":{"polluted":true}}}`;
     const result = parseImport(text);
     expect(result.ok).toBe(true);
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();

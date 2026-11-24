@@ -23,15 +23,15 @@ Rules, enforced by `eslint.config.js`:
 
 `app/state.ts` holds two signals, `progress` and `settings`, that every screen reads. Screens change them by assigning new values (`updateSettings(patch)`, `replaceProgress(next)`), and saving happens automatically:
 
-| Data     | Saved                                        | Key                |
-| -------- | -------------------------------------------- | ------------------ |
-| Settings | immediately on change                        | `homerow.settings` |
-| Progress | 1 s after the last change, and on `pagehide` | `homerow.progress` |
+| Data     | Saved                                        | Key              |
+| -------- | -------------------------------------------- | ---------------- |
+| Settings | immediately on change                        | `typix.settings` |
+| Progress | 1 s after the last change, and on `pagehide` | `typix.progress` |
 
 The save logic lives in `core/store/persist.ts` and takes a `KeyValueStore` (the `getItem`/`setItem`/`removeItem` subset of Web Storage). Tests pass an in-memory store instead.
 
 - **Untrusted input:** stored data and imported files go through `core/store/validate.ts`. Progress must match the schema exactly or it is rejected. Settings are checked field by field: invalid fields fall back to their defaults and unknown keys are dropped.
-- **Corrupt saves** are copied to `homerow.progress.corrupt` rather than overwritten, a fresh profile starts, and a banner explains what happened.
+- **Corrupt saves** are copied to `typix.progress.corrupt` rather than overwritten, a fresh profile starts, and a banner explains what happened.
 - **Storage full:** the oldest session summaries are trimmed while aggregates are kept, then the save is retried once. If it still fails, a banner suggests exporting.
 - **Storage unavailable** (for example, blocked by privacy settings): the app runs from memory and warns that nothing will be saved.
 
@@ -46,7 +46,7 @@ Saves from a _newer_ version are refused rather than downgraded.
 
 ### Export and import
 
-`core/store/export-import.ts` defines the file format (`{ app: 'homerow', exportedAt, progress, settings }`). An import is size-limited, parsed, migrated and validated, then shown as a summary for the player to confirm. Before an import or reset replaces anything, the current progress is downloaded as a backup.
+`core/store/export-import.ts` defines the file format (`{ app: 'typix', exportedAt, progress, settings }`). An import is size-limited, parsed, migrated and validated, then shown as a summary for the player to confirm. Before an import or reset replaces anything, the current progress is downloaded as a backup.
 
 ## Routing and transitions
 

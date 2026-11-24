@@ -1,8 +1,8 @@
-# Homerow
+# Typix
 
 **Learn to type. Then fight with it.**
 
-Homerow is a free, browser-based touch-typing trainer in three modes:
+Typix is a free, browser-based touch-typing trainer in three modes:
 
 - **Learn Typing**: a calm, guided course with animated hands, from the home row to code.
 - **Free Practice**: timed tests, weak-key drills and your own text.
@@ -52,4 +52,4 @@ TypeScript, Vite, Preact and `@preact/signals`. Phaser 3 is added in Phase 5 and
 
 ## Privacy
 
-Homerow stores progress and settings in your browser's `localStorage` (`homerow.progress`, `homerow.settings`). Nothing is sent anywhere. Clearing site data deletes your progress, so use **Settings → Data → Export** to keep a backup.
+Typix stores progress and settings in your browser's `localStorage` (`typix.progress`, `typix.settings`). Nothing is sent anywhere. Clearing site data deletes your progress, so use **Settings → Data → Export** to keep a backup.

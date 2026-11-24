@@ -5,10 +5,10 @@ import { isProgress, sanitizeSettings } from './validate';
 /** The subset of the Web Storage API we use, so tests can pass an in-memory store. */
 export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-export const PROGRESS_KEY = 'homerow.progress';
-export const SETTINGS_KEY = 'homerow.settings';
+export const PROGRESS_KEY = 'typix.progress';
+export const SETTINGS_KEY = 'typix.settings';
 /** A corrupt or unreadable save is copied here instead of being overwritten, so it can be recovered. */
-export const CORRUPT_KEY = 'homerow.progress.corrupt';
+export const CORRUPT_KEY = 'typix.progress.corrupt';
 
 export type LoadResult<T> = { value: T; recovered: boolean };
 
