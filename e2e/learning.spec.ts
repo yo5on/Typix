@@ -1,10 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { freshStart, playLesson, typeDrill } from './helpers';
 
-test('first launch → Unit 0 and Unit 1, keyboard only', async ({ page, browserName }) => {
-  // shortcut: WebKit on Windows paints ~250 ms per key press here, so 10 lessons run too long; WebKit covers the
-  // shorter specs. Re-enable once real Safari confirms the cost is the test engine, not the app.
-  test.skip(browserName === 'webkit', 'too slow per key in Playwright WebKit');
+test('first launch → Unit 0 and Unit 1, keyboard only @slow-on-windows-webkit', async ({ page }) => {
   test.setTimeout(240_000);
   await freshStart(page);
   await expect(page.getByRole('heading', { name: 'How do you type today?' })).toBeVisible();
@@ -77,9 +74,7 @@ test('placement: a shaky first stage starts the course from the beginning', asyn
   await expect(page.locator('[data-step="intro"]')).toBeVisible();
 });
 
-test('placement: pass the home row, fall short on the top row', async ({ page, browserName }) => {
-  // Passing needs 25+ WPM, and Playwright WebKit on Windows dispatches keys too slowly to reach it reliably.
-  test.skip(browserName === 'webkit', 'key dispatch too slow for the WPM pass mark');
+test('placement: pass the home row, fall short on the top row @slow-on-windows-webkit', async ({ page }) => {
   await startPlacement(page);
   await typeDrill(page);
   await expect(page.getByText(/Top row · stage 2 of 7/)).toBeVisible();

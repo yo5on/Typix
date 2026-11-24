@@ -4,6 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
 // dev server already running on 5173/5174 can't stand in for the build under test.
 const PORT = 5199;
 
+// Playwright WebKit on Windows takes ~250 ms per key press in this app (Linux CI: a few ms), too slow for the
+// long specs and the WPM pass mark. Those are tagged and skipped there only.
+declare const process: { platform: string };
+const slowWebkit = process.platform === 'win32' ? /@slow-on-windows-webkit/ : undefined;
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
@@ -13,7 +18,7 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, grepInvert: slowWebkit },
   ],
   webServer: {
     command: `npx vite build && npx vite preview --port ${PORT} --strictPort`,
