@@ -7,15 +7,18 @@ export function Screen({
   title,
   onBack,
   aside,
+  fill,
   children,
 }: {
   title: string;
   onBack: () => void;
   aside?: ComponentChildren;
+  /** Fill the whole window with no page scroll (for full-screen surfaces like the fight). */
+  fill?: boolean;
   children: ComponentChildren;
 }) {
   return (
-    <div class={s.screen}>
+    <div class={fill ? `${s.screen} ${s.fill}` : s.screen}>
       <header class={s.header}>
         <button type="button" class={s.back} onClick={onBack}>
           <Icon name="back" size={18} />

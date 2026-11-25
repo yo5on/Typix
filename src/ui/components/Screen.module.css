@@ -54,3 +54,19 @@
   display: flex;
   flex-direction: column;
 }
+
+.fill {
+  max-width: none;
+  /* Exactly the window: no flex growth, and content can't push it taller. */
+  flex: none;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--sp-12) var(--sp-24);
+}
+.fill .header {
+  margin-bottom: var(--sp-12);
+}
+.fill .body {
+  min-height: 0;
+}

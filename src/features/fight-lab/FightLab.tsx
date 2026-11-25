@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate } from '../../app/router';
 import { settings } from '../../app/state';
+import { fightSentences } from '../../content/sentences/en-fight';
 import { enCommonWords } from '../../content/words/en-common';
 import { FightAi, type Difficulty } from '../../core/fight/ai';
 import { enemyHp, HEAL, NEXT_ENEMY_TICKS, pointsFor, tierFor, weaponFor } from '../../core/fight/gauntlet';
@@ -56,6 +57,8 @@ interface Match {
   sim: FightState;
   renderer: FightRenderer;
   player: TypingFighter;
+  /** The sentence being typed; each word is one attack. */
+  line: { words: string[]; i: number };
   ai: FightAi | null;
   opts: { aiOn: boolean; level: Opponent; pace: Pace };
   maxCombo: number;
@@ -78,13 +81,28 @@ function makeAi(o: Match['opts'], seed: number, tier: number): FightAi | null {
     : null;
 }
 
+/** Attack words come from real sentences in order; defence words stay short common words. */
+function sentencePickers(rng: () => number) {
+  const line = { words: [] as string[], i: 0 };
+  const attack = () => {
+    if (++line.i >= line.words.length) {
+      line.words = fightSentences[Math.floor(rng() * fightSentences.length)]!.split(' ');
+      line.i = 0;
+    }
+    return line.words[line.i]!;
+  };
+  return { line, attack, defense: wordPickers(enCommonWords, rng).defense };
+}
+
 function newMatch(aiOn: boolean, level: Opponent, pace: Pace): Match {
   const seed = Date.now() >>> 0;
   const opts = { aiOn, level, pace };
+  const words = sentencePickers(seededRng(seed));
   return {
     sim: createFight({ gap: START_GAP }),
     renderer: new FightRenderer(),
-    player: new TypingFighter(0, wordPickers(enCommonWords, seededRng(seed))),
+    player: new TypingFighter(0, words),
+    line: words.line,
     ai: makeAi(opts, seed, 0),
     opts,
     maxCombo: 0,
@@ -277,6 +295,7 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
 
   return (
     <Screen
+      fill
       title={dev ? 'Fight Lab' : 'Fight'}
       onBack={() => navigate('menu')}
       aside={dev ? <span class={s.dev}>DEV ONLY</span> : undefined}
@@ -362,7 +381,18 @@ export function FightLab({ dev = false }: { dev?: boolean }) {
             ) : (
               <>
                 <span class={s.tag}>{hud.counterReady ? 'Counter ready' : 'Attack'}</span>
-                <Word text={a.word} pos={a.session.pos} />
+                <span class={s.word}>
+                  {match.current.line.words.map((w, wi) => (
+                    <span key={wi}>
+                      {wi > 0 && ' '}
+                      {wi === match.current.line.i ? (
+                        <Word text={a.word} pos={a.session.pos} />
+                      ) : (
+                        <span class={wi < match.current.line.i ? s.done : s.todo}>{w}</span>
+                      )}
+                    </span>
+                  ))}
+                </span>
                 <span class={s.meta}>
                   {MOVES[a.move].name} · charge {Math.round((a.session.pos / a.word.length) * 100)}% ·
                   accuracy {Math.round(player.accuracy * 100)}%
